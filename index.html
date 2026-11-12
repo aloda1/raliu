@@ -1,0 +1,103 @@
+<!doctype html><html lang="ro"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#073d36"><title>raliu • turneu de ping-pong</title><style>
+*{box-sizing:border-box}body{margin:0;background:#f2f3e9;color:#123c33;font:16px system-ui,sans-serif}header{background:#073d36;color:#f2f3e9;border-bottom:5px solid #c8f661}main,.inner{max-width:850px;margin:auto;padding:24px}.brand{font-weight:900;font-size:22px;letter-spacing:-1px}.logo{color:#c8f661}.hero{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:32px 0 6px}small{font:700 11px ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase}h1{font-size:clamp(40px,8vw,76px);letter-spacing:-.07em;line-height:.98;margin:10px 0}.court{width:25%;max-width:175px;flex:none}section,article{background:#fffef6;border:1px solid #ced7c7;border-radius:16px;padding:20px;margin:12px 0}h2{margin:0 0 8px;letter-spacing:-.04em}p{line-height:1.5;margin:7px 0 16px}textarea,input,button{font:inherit}textarea{width:100%;margin:8px 0;padding:14px;border-radius:10px;border:1px solid #9aaa9b;resize:vertical;background:#fafbf4}button{cursor:pointer;min-height:46px;padding:10px 16px;border:1px solid #afbdad;border-radius:9px;background:white;color:#123c33;font-weight:650}.primary{background:#c8f661;border-color:#99bb54}.row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}button:disabled{opacity:.45}.player{width:100%;text-align:left;margin:4px 0;overflow-wrap:anywhere}.player:after{content:'→';float:right}details{margin-top:9px}summary{cursor:pointer;padding:10px 0}.scores{display:flex;gap:8px;flex-wrap:wrap}.scores label{flex:1;min-width:80px;overflow-wrap:anywhere}input{display:block;width:100%;padding:10px;margin:5px 0;border:1px solid #aab9aa;border-radius:7px}.scores button{align-self:end}.badge{color:#56745e}.error{color:#a02f12}.winner{background:#d9f7a9}article{overflow-wrap:anywhere}nav{margin:16px 0}h3{margin:28px 0 4px} table{width:100%;border-collapse:collapse;margin:6px 0 12px}th,td{padding:6px 4px;text-align:center;border-bottom:1px solid #e3e8dc}th:first-child,td:first-child{text-align:left;overflow-wrap:anywhere}th{font:700 11px ui-monospace,monospace;text-transform:uppercase}select{font:inherit;padding:8px;border-radius:8px;border:1px solid #aab9aa;background:white;margin:0 0 12px}section article{background:#f7f8ee}.think p{animation:pulse 1s ease-in-out infinite}@keyframes pulse{50%{opacity:.3}}.tabs{display:flex;gap:8px;margin:0 0 4px}.tabs button{flex:1}.up{color:#2f7a3e}.down{color:#a02f12}[hidden]{display:none!important}
+</style><header><div class="inner"><div class="brand"><span class="logo">◉</span> raliu</div><div class="hero"><div><small>tenis de masă / eliminare directă</small><h1>turneu de<br>ping-pong.</h1></div><svg class="court" viewBox="0 0 150 120" aria-hidden="true"><g transform="rotate(-12 75 60)" stroke="#cbf865" fill="none" stroke-width="3"><rect x="12" y="23" width="126" height="75" rx="3"/><path d="M12 61h126M75 16v89"/><path stroke-dasharray="5 6" d="m32 77 66-39"/></g><circle cx="104" cy="30" r="9" fill="#ffab73"/></svg></div></div></header><main><nav class="tabs"><button id="tt" class="primary">turneu</button><button id="te">elo</button></nav><div id="tour"><section id="setup"><small>01 / înscrieri</small><h2>cine joacă?</h2><label for="names">scrie câte un nume pe fiecare rând.</label><textarea id="names" rows="6" placeholder="christi&#10;fabi&#10;anthony"></textarea><div><label for="adv">avansează din fiecare grupă: </label><select id="adv"><option value="2">primii 2</option><option value="1">doar primul</option></select></div><div class="row"><span id="count"></span><button class="primary" id="start">amestecă și începe ↗</button></div><div role="alert" id="error" class="error"></div></section><div id="board"></div></div><div id="eloview" hidden></div></main><script>
+const $=id=>document.getElementById(id),names=$('names'),key='raliu-tournament-v2';
+let state=null;try{state=JSON.parse(localStorage.getItem(key))}catch{}
+let ts=0;try{ts=+localStorage.getItem(key+'-t')||0}catch{}
+function save(){ts=Date.now();try{localStorage.setItem(key,JSON.stringify(state));localStorage.setItem(key+'-t',ts)}catch{}push('tournament/current',()=>JSON.stringify(state),ts)}
+const entries=()=>names.value.split(/\r?\n/).map(n=>n.trim()).filter(Boolean);
+// grupe de ~3: 10 -> 4+3+3, 7 -> 4+3, 12 -> 3+3+3+3
+function sizes(n){let g=Math.max(1,Math.floor(n/3)),base=Math.floor(n/g),extra=n%g;return Array.from({length:g},(_,i)=>base+(i<extra?1:0))}
+function desc(n){let c={};sizes(n).forEach(k=>c[k]=(c[k]||0)+1);return Object.keys(c).sort((a,b)=>b-a).map(k=>c[k]+(c[k]===1?' grupă':' grupe')+' de '+k).join(' + ')}
+function count(){let n=entries().length;$('count').textContent=n+' jucători'+(n>1?' • '+desc(n):'');$('start').disabled=n<2}
+names.oninput=count;
+function shuffle(list){for(let i=list.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[list[i],list[j]]=[list[j],list[i]]}return list}
+function split(players){let bag=shuffle(players.slice());return sizes(players.length).map(k=>bag.splice(0,k))}
+// tabloul eliminatoriu; încearcă să evite meciuri între jucători din aceeași grupă
+function seed(q){let size=2**Math.ceil(Math.log2(q.length)),best;for(let t=0;t<200;t++){let bag=shuffle(q.slice()),pairs=[];for(let i=0;i<size/2;i++)pairs.push([bag.pop(),i<size-q.length?null:bag.pop()]);best=pairs;if(pairs.every(([a,b])=>!b||a.g!==b.g))break}return shuffle(best).map(p=>p.map(x=>x&&x.n))}
+let think=null;
+// ---- elo (separat de turneu, rămâne salvat în browser) ----
+const ek='raliu-elo-v1';let E={r:{},log:[]};try{E=JSON.parse(localStorage.getItem(ek))||E}catch{}
+const esave=()=>{E.t=Date.now();if(E.log.length>300)E.log=E.log.slice(-300);try{localStorage.setItem(ek,JSON.stringify(E))}catch{}push('elo/ratings',()=>JSON.stringify(E),E.t)};
+const nk=n=>Object.keys(E.r).find(k=>k.toLowerCase()===n.toLowerCase())||n;
+function elo(id,a,b,w,sc){state.tid=state.tid||Math.random().toString(36).slice(2);let P=n=>{n=nk(n);return E.r[n]||(E.r[n]={e:1000,g:0,w:0,c:0})},A=P(a),B=P(b),ea=1/(1+10**((B.e-A.e)/400)),win=w===a,d=sc?Math.min(Math.abs(sc[0]-sc[1]),11):0,k=32*(1+d/11),da=Math.round(k*((win?1:0)-ea)),db=-da;
+E.log.push({t:state.tid,id,a,b,w,da,db,pa:A.c,pb:B.c});A.e+=da;B.e+=db;A.g++;B.g++;(win?A:B).w++;A.c=da;B.c=db;esave()}
+function eloUndo(id){let i=E.log.map(x=>x.t===state.tid&&x.id===id).lastIndexOf(true);if(i<0)return;let x=E.log.splice(i,1)[0],A=E.r[nk(x.a)],B=E.r[nk(x.b)];if(A&&B){A.e-=x.da;B.e-=x.db;A.g--;B.g--;E.r[nk(x.w)].w--;A.c=x.pa;B.c=x.pb}esave()}
+function eloRender(){let v=$('eloview');v.replaceChildren();let s=el('section',null,'',v);el('small','clasament',null,s);el('h2','elo',null,s);el('p','toți încep de la 1000. o victorie la scor mare contează mai mult.',null,s);
+el('small','setează elo manual',null,s);el('p','pentru cei foarte buni, ex. 1300. dacă scrii din nou numele, elo-ul se schimbă.',null,s);
+let f=el('form',null,'scores',s),l1=el('label','nume',null,f),ni=el('input',null,'',l1),l2=el('label','elo',null,f),ei=el('input',null,'',l2);Object.assign(ni,{type:'text',required:true});Object.assign(ei,{type:'number',inputMode:'numeric',min:'100',max:'3000',step:'1',required:true});el('button','setează','primary',f);
+f.onsubmit=e=>{e.preventDefault();let n=ni.value.trim(),v=Math.round(+ei.value);if(!n||!v)return;let k=nk(n),x=E.r[k]||(E.r[k]={e:1000,g:0,w:0,c:0});x.e=v;x.s=1;x.c=0;esave();eloRender()};
+let rows=Object.entries(E.r).filter(([,x])=>x.g||x.s).sort((x,y)=>y[1].e-x[1].e);
+if(!rows.length){el('p','niciun meci încă. rezultatele din turneu apar aici.',null,s);return}
+let t=el('table',null,'',s),h=el('tr',null,'',el('thead',null,'',t));['jucător','elo','±','J','V'].forEach(x=>el('th',x,null,h));let tb=el('tbody',null,'',t);
+rows.forEach(([n,x],i)=>{let tr=el('tr',null,'',tb);let td=el('td',(i+1)+'. '+n,null,tr);button('×','',td,()=>{delete E.r[n];esave();eloRender()}).style.cssText='display:inline-block;width:auto;min-height:0;margin-left:8px;padding:0 8px';el('td',x.e,null,tr);el('td',x.c>0?'▲'+x.c:x.c<0?'▼'+(-x.c):'–',x.c>0?'up':x.c<0?'down':'',tr);el('td',x.g,null,tr);el('td',x.w,null,tr)});
+let rb=button('resetează elo','',s,()=>{if(!rb.dataset.sure){rb.dataset.sure='1';rb.textContent='sigur? apasă din nou';setTimeout(()=>{rb.dataset.sure='';rb.textContent='resetează elo'},4000);return}E={r:{},log:[]};esave();eloRender()})}
+let tab='t';function tabs(){$('tour').hidden=tab!=='t';$('eloview').hidden=tab!=='e';$('tt').className=tab==='t'?'primary':'';$('te').className=tab==='e'?'primary':'';if(tab==='e')eloRender()}
+$('tt').onclick=()=>{tab='t';tabs()};$('te').onclick=()=>{tab='e';tabs()};
+const letters=i=>String.fromCharCode(65+i);
+const fx=g=>g.flatMap((a,i)=>g.slice(i+1).map(b=>[a,b]));
+const gdone=()=>state.groups.every((g,gi)=>fx(g).every((_,i)=>state.results['g'+gi+'-'+i]));
+// ordinea meciurilor dintr-o grupă: cine tocmai a jucat se odihnește dacă se poate, iar câștigătorul stă cel mai mult
+function order(gi){let g=state.groups[gi],f=fx(g).map(([a,b],i)=>({a,b,i,id:'g'+gi+'-'+i})),seq=f.filter(m=>state.results[m.id]).sort((x,y)=>state.history.indexOf(x.id)-state.history.indexOf(y.id)),rest=f.filter(m=>!state.results[m.id]),gp={};g.forEach(n=>gp[n]=0);seq.forEach(m=>{gp[m.a]++;gp[m.b]++});
+let last=seq[seq.length-1];
+while(rest.length){let lw=last&&state.results[last.id]&&state.results[last.id].winner,score=m=>[m.a,m.b].reduce((t,n)=>t+(last&&(n===last.a||n===last.b)?(n===lw?3:1):0)+gp[n]*.1,0);
+rest.sort((x,y)=>score(x)-score(y)||x.i-y.i);let m=rest.shift();seq.push(m);gp[m.a]++;gp[m.b]++;last=m}
+return seq}
+function table(gi){let g=state.groups[gi],t=new Map(g.map(n=>[n,{n,j:0,w:0,d:0,sc:0,beat:[]}]));
+fx(g).forEach(([a,b],i)=>{let r=state.results['g'+gi+'-'+i];if(!r)return;let w=r.winner,l=w===a?b:a;t.get(w).w++;t.get(w).j++;t.get(l).j++;t.get(w).beat.push(l);if(r.scores){let d=Math.abs(r.scores[0]-r.scores[1]);t.get(w).d+=d;t.get(l).d-=d;t.get(w).sc++;t.get(l).sc++}});
+let arr=[...t.values()].sort((x,y)=>y.w-x.w||y.d-x.d),K=state.groups.length===1?1:state.adv,pk=(state.tb&&state.tb[gi])||[],out=[];out.tie=null;
+for(let i=0,j;i<arr.length;i=j){j=i;while(j<arr.length&&arr[j].w===arr[i].w&&arr[j].d===arr[i].d)j++;let run=arr.slice(i,j);
+if(run.length===2&&(run[0].beat.includes(run[1].n)||run[1].beat.includes(run[0].n))){if(run[1].beat.includes(run[0].n))run.reverse()}
+else if(run.length>1){let p=run.filter(r=>pk.includes(r.n)).sort((x,y)=>pk.indexOf(x.n)-pk.indexOf(y.n)),q=run.filter(r=>!pk.includes(r.n));run=p.concat(q);if(i<K&&j>K&&p.length<K-i)out.tie={run:q,slot:i+p.length+1}}
+out.push(...run)}
+return out}
+const gfin=gi=>fx(state.groups[gi]).every((_,i)=>state.results['g'+gi+'-'+i]);
+$('start').onclick=()=>{let players=entries();if(new Set(players.map(x=>x.toLocaleLowerCase('ro'))).size!==players.length){$('error').textContent='două nume coincid. adaugă o inițială ca să distingi jucătorii.';return}state={players,adv:+$('adv').value,groups:split(players),results:{},history:[],pairs:null};save();render()};
+function el(tag,txt,cls,parent){let e=document.createElement(tag);if(txt!=null)e.textContent=txt;if(cls)e.className=cls;if(parent)parent.append(e);return e}
+function button(txt,cls,parent,fn){let b=el('button',txt,cls,parent);b.onclick=fn;return b}
+// cote zecimale din elo; 1.90 la 1.90 dacă unul dintre jucători nu are meciuri
+function odds(a,b){let A=E.r[nk(a)],B=E.r[nk(b)];if(!A||!B||!(A.g||A.s)||!(B.g||B.s))return{a:'1.90',b:'1.90',fav:null};let p=Math.min(.95,Math.max(.05,1/(1+10**((B.e-A.e)/400)))),f=x=>Math.max(1.05,.95/x).toFixed(2);return{a:f(p),b:f(1-p),fav:Math.abs(p-.5)<.02?null:p>.5?a:b}}
+function match(parent,a,b,id,label){let r=state.results[id],card=el('article',null,'',parent);el('small',label,'badge',card);
+function win(winner,scores){state.results[id]={winner,scores};state.history.push(id);elo(id,a,b,winner,scores);save();if(id[0]==='g'){think=+id.slice(1).split('-')[0];render();setTimeout(()=>{think=null;render()},900)}else render()}
+if(r){el('p',a+' '+(r.scores?r.scores.join(' – '):' vs. ')+' '+b,null,card);el('strong','✓ '+r.winner,null,card)}
+else if(a&&b){let o=odds(a,b);el('p','apasă pe câștigător • cote după elo',null,card);[a,b].forEach((n,k)=>button(n+'  •  '+(k?o.b:o.a)+(o.fav===n?'  ⭐':''),'player',card,()=>win(n,null)));let det=el('div',null,'',card);el('small','sau introdu scorul','badge',det);let form=el('form',null,'scores',det),fields=[a,b].map(n=>{let lab=el('label',n,null,form),f=el('input',null,'',lab);Object.assign(f,{type:'number',inputMode:'numeric',min:'0',step:'1',required:true});return f});el('button','salvează','primary',form);let msg=el('div','','error',det);msg.setAttribute('role','alert');form.onsubmit=e=>{e.preventDefault();let s=fields.map(f=>Number(f.value));if(s[0]===s[1]){msg.textContent='scor egal. cine a câștigat meciul?';return}win(s[0]>s[1]?a:b,s)}}
+else el('p',(a||'în așteptare')+' vs. '+(b||'în așteptare'),null,card)}
+function crown(board,w,s2){let c=el('section',null,'winner');el('small','turneu încheiat',null,c);el('h2','🏆 '+w,null,c);if(s2)el('p','locul 2: '+s2,null,c);if(state.results['3rd'])el('p','locul 3: '+state.results['3rd'].winner,null,c);board.prepend(c)}
+function render(){let board=$('board');board.replaceChildren();$('setup').hidden=!!state;if(!state){count();return}
+let G=state.groups,nav=el('nav',null,'row',board);el('small',state.players.length+' participanți • '+G.length+(G.length===1?' grupă':' grupe'),null,nav);
+button('anulează ultimul rezultat','',nav,()=>{let id=state.history.pop();eloUndo(id);delete state.results[id];if(id[0]==='g'){state.pairs=null;if(state.tb)delete state.tb[+id.slice(1).split('-')[0]]}save();render()}).disabled=!state.history.length;
+let nb=button('turneu nou','',nav,()=>{if(state.history.length&&!nb.dataset.sure){nb.dataset.sure='1';nb.textContent='sigur? apasă din nou';setTimeout(()=>{nb.dataset.sure='';nb.textContent='turneu nou'},4000);return}names.value=state.players.join('\n');state=null;think=null;save();$('error').textContent='';render()});
+el('h3','faza grupelor',null,board);
+let K=G.length===1?1:state.adv,gok=gi=>gfin(gi)&&!table(gi).tie,cur=G.findIndex((g,gi)=>!gok(gi)),done=cur<0;
+G.forEach((g,gi)=>{if(cur>=0&&gi>cur)return;let s=el('section',null,'',board),rows=table(gi);el('h2','grupa '+letters(gi),null,s);
+let t=el('table',null,'',s),h=el('tr',null,'',el('thead',null,'',t));['jucător','J','V','+/−'].forEach(x=>el('th',x,null,h));
+let tb=el('tbody',null,'',t);rows.forEach((r,i)=>{let tr=el('tr',null,gok(gi)&&G.length>1&&i<K?'winner':'',tb);el('td',r.n,null,tr);el('td',r.j,null,tr);el('td',r.w,null,tr);el('td',r.sc?(r.d>0?'+'+r.d:r.d):'–',null,tr)});
+if(gfin(gi)&&rows.tie){let c=el('article',null,'',s),T=rows.tie;el('small','egalitate','badge',c);el('p','egalitate perfectă între '+T.run.map(r=>r.n).join(', ')+' — alege cine ocupă locul '+T.slot+' în grupă:',null,c);T.run.forEach(r=>button(r.n,'player',c,()=>{state.tb=state.tb||{};state.tb[gi]=(state.tb[gi]||[]).concat(r.n);save();render()}))}
+let seq=order(gi),p=seq.filter(m=>state.results[m.id]).length,shown=think===gi?p:p+1;seq.slice(0,shown).forEach((m,k)=>match(s,m.a,m.b,m.id,'meci '+(k+1)));
+if(think===gi&&p<seq.length){let c=el('article',null,'think',s);el('small','meci '+(p+1),'badge',c);el('p','se alege următorul meci…',null,c)}
+else if(shown<seq.length)el('small','încă '+(seq.length-shown)+(seq.length-shown===1?' meci':' meciuri')+' în grupă',null,s)});
+if(cur>=0&&cur<G.length-1)el('small','grupa '+letters(cur+1)+' apare după ce se termină grupa '+letters(cur),null,board);
+if(!done)return;
+if(G.length===1){crown(board,table(0)[0].n);return}
+if(!state.pairs){state.pairs=seed(G.flatMap((g,gi)=>table(gi).slice(0,state.adv).map(r=>({n:r.n,g:gi}))));save()}
+el('h3','faza eliminatorie',null,board);
+let pairs=state.pairs,round=0,block=false;
+while(pairs.length){let next=[];el('h3',pairs.length===1?'finală':pairs.length===2?'semifinale':pairs.length===4?'sferturi de finală':'turul '+(round+1),null,board);
+pairs.forEach(([a,b],i)=>{if(block){next.push(undefined);return}let id=round+'-'+i,bye=round===0&&b===null,winner;
+if(bye){winner=a;let c=el('article',null,'',board);el('small','meci '+(i+1),'badge',c);el('p',a+' trece automat în turul următor.',null,c)}
+else{match(board,a,b,id,'meci '+(i+1));winner=state.results[id]&&state.results[id].winner;if(!winner)block=true}
+next.push(winner);if(pairs.length===1&&winner)crown(board,winner,winner===a?b:a)});
+if(pairs.length===2&&!block&&!(round===0&&pairs.some(p=>p[1]===null))){let L=pairs.map(([a,b],i)=>{let r=state.results[round+'-'+i];return r.winner===a?b:a});el('h3','mica finală',null,board);match(board,L[0],L[1],'3rd','meci');if(!state.results['3rd'])block=true}
+if(block||next.length===1)break;pairs=[];for(let j=0;j<next.length;j+=2)pairs.push(next.slice(j,j+2));round++}}
+// ---- cloud: db salvează turneul și elo în cont, ca să le vezi pe orice dispozitiv ----
+let cloud=null,pt={};
+function push(path,get,t){if(!cloud)return;clearTimeout(pt[path]);pt[path]=setTimeout(()=>{try{cloud.doc(path).set({t,s:get()}).catch(()=>{})}catch{}},500)}
+(async()=>{try{let u=await claude.use('db');if(!u)return;cloud=u;
+u.doc('elo/ratings').onSnapshot(sn=>{let d=sn.exists&&sn.data();
+if(d&&d.t>(E.t||0)){try{E=JSON.parse(d.s)}catch{return}E.t=d.t;try{localStorage.setItem(ek,d.s)}catch{}if(tab==='e')eloRender()}
+else if((!d||d.t<(E.t||0))&&Object.keys(E.r).length)push('elo/ratings',()=>JSON.stringify(E),E.t||(E.t=Date.now()))},()=>{});
+u.doc('tournament/current').onSnapshot(sn=>{let d=sn.exists&&sn.data();
+if(d&&d.t>ts){try{state=JSON.parse(d.s)}catch{return}ts=d.t;try{localStorage.setItem(key,d.s);localStorage.setItem(key+'-t',ts)}catch{}render()}
+else if((!d||d.t<ts||(!d&&state))&&(state||ts))push('tournament/current',()=>JSON.stringify(state),ts||(ts=Date.now()))},()=>{})}catch{}})();
+render()
+</script></html>
