@@ -58,11 +58,13 @@ function button(txt,cls,parent,fn){let b=el('button',txt,cls,parent);b.onclick=f
 // cote zecimale din elo; 1.90 la 1.90 dacă unul dintre jucători nu are meciuri
 function odds(a,b){let A=E.r[nk(a)],B=E.r[nk(b)];if(!A||!B||!(A.g||A.s)||!(B.g||B.s))return{a:'1.90',b:'1.90',fav:null};let p=Math.min(.9962,Math.max(.0038,1/(1+10**((B.e-A.e)/400)))),f=x=>Math.min(250,Math.max(1.05,.95/x)).toFixed(2);return{a:f(p),b:f(1-p),fav:Math.abs(p-.5)<.02?null:p>.5?a:b}}
 function match(parent,a,b,id,label){let r=state.results[id],card=el('article',null,/^se joacă/.test(label)&&!r?'now':'',parent);el('small',label,'badge',card);
-function win(winner,scores){state.results[id]={winner,scores};state.history.push(id);elo(id,a,b,winner,scores);save();render()}
+function win(winner,scores){state.results[id]={winner,scores};state.history.push(id);elo(id,a,b,winner,scores);save();if(id[0]==='g'){think=+id.slice(1).split('-')[0];render();setTimeout(()=>{think=null;render()},1000)}else render()}
 if(r){el('p',a+' '+(r.scores?r.scores.join(' – '):' vs. ')+' '+b,null,card);el('strong','✓ '+r.winner,null,card)}
 else if(a&&b){let o=odds(a,b);el('p','apasă pe câștigător • cote estimate înainte de meci, doar după elo',null,card);[a,b].forEach((n,k)=>button(n+'  •  '+(k?o.b:o.a)+(o.fav===n?'  ⭐':''),'player',card,()=>win(n,null)));let det=el('div',null,'',card);el('small','sau introdu scorul','badge',det);let form=el('form',null,'scores',det),fields=[a,b].map((n,k)=>{let lab=el('label',n,null,form),f=el('input',null,'',lab);Object.assign(f,{type:'number',inputMode:'numeric',min:'0',step:'1',required:true});f.dataset.k=JSON.stringify([draftScope(),id,a,b,k]);f.value=drafts[f.dataset.k]||'';return f});el('button','salvează','primary',form);let msg=el('div','','error',det);msg.setAttribute('role','alert');form.onsubmit=e=>{e.preventDefault();let s=fields.map(f=>Number(f.value));if(s[0]===s[1]){msg.textContent='scor egal. cine a câștigat meciul?';return}win(s[0]>s[1]?a:b,s)}}
 else el('p',(a||'în așteptare')+' vs. '+(b||'în așteptare'),null,card)}
 function crown(board,w,s2){let c=el('section',null,'winner');el('small','turneu încheiat',null,c);el('h2','🏆 '+w,null,c);if(s2)el('p','locul 2: '+s2,null,c);if(state.results['3rd'])el('p','locul 3: '+state.results['3rd'].winner,null,c);board.prepend(c)}
+const CERTAIN=.6; // sub acest prag (favorit < 60%) meciul e prea echilibrat și nu arătăm indiciu
+function nextHint(seq,p){const m=seq[p],A=E.r[nk(m.a)],B=E.r[nk(m.b)];if(!A||!B||!(A.g||A.s)||!(B.g||B.s))return null;const pa=1/(1+10**((B.e-A.e)/400));if(Math.max(pa,1-pa)<CERTAIN)return null;const win=pa>.5?m.a:m.b,lose=pa>.5?m.b:m.a,n=seq.slice(p+1).find(x=>(x.a===lose||x.b===lose)&&x.a!==win&&x.b!==win);return n?lose+' – '+(n.a===lose?n.b:n.a):null}
 let drafts={};
 function draftScope(){return JSON.stringify(state?[state.tid||null,state.players,state.groups]:null)}
 function clearDrafts(){drafts={};document.querySelectorAll('#board input[data-k]').forEach(i=>i.value='')}
@@ -84,7 +86,8 @@ let tb=el('tbody',null,'',t);rows.forEach((r,i)=>{let tr=el('tr',null,gok(gi)&&G
 if(gfin(gi)&&rows.tie){let c=el('article',null,'',s),T=rows.tie;el('small','egalitate','badge',c);el('p','egalitate perfectă între '+T.run.map(r=>r.n).join(', ')+' — alege cine ocupă locul '+T.slot+' în grupă:',null,c);T.run.forEach(r=>button(r.n,'player',c,()=>{state.tb=state.tb||{};state.tb[gi]=(state.tb[gi]||[]).concat(r.n);save();render()}))}
 let seq=order(gi),p=seq.filter(m=>state.results[m.id]).length;
 if(p){let d=el('details',null,'',s);el('summary','meciuri jucate ('+p+')',null,d);seq.slice(0,p).forEach((m,k)=>match(d,m.a,m.b,m.id,'meci '+(k+1)))}
-if(p<seq.length){let m=seq[p],r=seq.length-p-1;match(s,m.a,m.b,m.id,'se joacă acum • meci '+(p+1));if(r)el('small','încă '+r+(r===1?' meci':' meciuri')+' în grupă • urmează probabil '+seq[p+1].a+' – '+seq[p+1].b,null,s)}});
+if(p<seq.length){if(think===gi){let c=el('article',null,'think',s);el('small','meci '+(p+1),'badge',c);el('p','se alege următorul meci…',null,c)}
+else{let m=seq[p],r=seq.length-p-1,h=nextHint(seq,p);match(s,m.a,m.b,m.id,'se joacă acum • meci '+(p+1));if(r)el('small','încă '+r+(r===1?' meci':' meciuri')+' în grupă'+(h?' • urmează probabil '+h:''),null,s)}}});
 if(cur>=0&&cur<G.length-1)el('small','grupa '+letters(cur+1)+' apare după ce se termină grupa '+letters(cur),null,board);
 if(!done)return;
 if(G.length===1){crown(board,table(0)[0].n);return}
