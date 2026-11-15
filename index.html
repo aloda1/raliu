@@ -1,6 +1,6 @@
 <!doctype html><html lang="ro"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#073d36"><title>raliu • turneu de ping-pong</title><style>
-*{box-sizing:border-box}body{margin:0;background:#f2f3e9;color:#123c33;font:16px system-ui,sans-serif}header{background:#073d36;color:#f2f3e9;border-bottom:5px solid #c8f661}main,.inner{max-width:850px;margin:auto;padding:24px}.brand{font-weight:900;font-size:22px;letter-spacing:-1px}.logo{color:#c8f661}.hero{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:32px 0 6px}small{font:700 11px ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase}h1{font-size:clamp(40px,8vw,76px);letter-spacing:-.07em;line-height:.98;margin:10px 0}.court{width:25%;max-width:175px;flex:none}section,article{background:#fffef6;border:1px solid #ced7c7;border-radius:16px;padding:20px;margin:12px 0}h2{margin:0 0 8px;letter-spacing:-.04em}p{line-height:1.5;margin:7px 0 16px}textarea,input,button{font:inherit}textarea{width:100%;margin:8px 0;padding:14px;border-radius:10px;border:1px solid #9aaa9b;resize:vertical;background:#fafbf4}button{cursor:pointer;min-height:46px;padding:10px 16px;border:1px solid #afbdad;border-radius:9px;background:white;color:#123c33;font-weight:650}.primary{background:#c8f661;border-color:#99bb54}.row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}button:disabled{opacity:.45}.player{width:100%;text-align:left;margin:4px 0;overflow-wrap:anywhere}.player:after{content:'→';float:right}details{margin-top:9px}summary{cursor:pointer;padding:10px 0}.scores{display:flex;gap:8px;flex-wrap:wrap}.scores label{flex:1;min-width:80px;overflow-wrap:anywhere}input{display:block;width:100%;padding:10px;margin:5px 0;border:1px solid #aab9aa;border-radius:7px}.scores button{align-self:end}.badge{color:#56745e}.error{color:#a02f12}.winner{background:#d9f7a9}article{overflow-wrap:anywhere}nav{margin:16px 0}h3{margin:28px 0 4px} table{width:100%;border-collapse:collapse;margin:6px 0 12px}th,td{padding:6px 4px;text-align:center;border-bottom:1px solid #e3e8dc}th:first-child,td:first-child{text-align:left;overflow-wrap:anywhere}th{font:700 11px ui-monospace,monospace;text-transform:uppercase}select{font:inherit;padding:8px;border-radius:8px;border:1px solid #aab9aa;background:white;margin:0 0 12px}section article{background:#f7f8ee}.think p{animation:pulse 1s ease-in-out infinite}@keyframes pulse{50%{opacity:.3}}.tabs{display:flex;gap:8px;margin:0 0 4px}.tabs button{flex:1}.up{color:#2f7a3e}.down{color:#a02f12}[hidden]{display:none!important}
-</style><header><div class="inner"><div class="brand"><span class="logo">◉</span> raliu</div><div class="hero"><div><small>tenis de masă / eliminare directă</small><h1>turneu de<br>ping-pong.</h1></div><svg class="court" viewBox="0 0 150 120" aria-hidden="true"><g transform="rotate(-12 75 60)" stroke="#cbf865" fill="none" stroke-width="3"><rect x="12" y="23" width="126" height="75" rx="3"/><path d="M12 61h126M75 16v89"/><path stroke-dasharray="5 6" d="m32 77 66-39"/></g><circle cx="104" cy="30" r="9" fill="#ffab73"/></svg></div></div></header><main><nav class="tabs"><button id="tt" class="primary">turneu</button><button id="te">elo</button></nav><div id="tour"><section id="setup"><small>01 / înscrieri</small><h2>cine joacă?</h2><label for="names">scrie câte un nume pe fiecare rând.</label><textarea id="names" rows="6"></textarea><div><label for="adv">avansează din fiecare grupă: </label><select id="adv"><option value="2">primii 2</option><option value="1">doar primul</option></select></div><div class="row"><span id="count"></span><button class="primary" id="start">amestecă și începe ↗</button></div><div role="alert" id="error" class="error"></div></section><div id="board"></div></div><div id="eloview" hidden></div></main><script>
+*{box-sizing:border-box}body{margin:0;background:#f2f3e9;color:#123c33;font:16px system-ui,sans-serif}header{background:#073d36;color:#f2f3e9;border-bottom:5px solid #c8f661}main,.inner{max-width:850px;margin:auto;padding:24px}.brand{font-weight:900;font-size:22px;letter-spacing:-1px}.logo{color:#c8f661}.hero{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:32px 0 6px}small{font:700 11px ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase}h1{font-size:clamp(40px,8vw,76px);letter-spacing:-.07em;line-height:.98;margin:10px 0}.court{width:25%;max-width:175px;flex:none}section,article{background:#fffef6;border:1px solid #ced7c7;border-radius:16px;padding:20px;margin:12px 0}h2{margin:0 0 8px;letter-spacing:-.04em}p{line-height:1.5;margin:7px 0 16px}textarea,input,button{font:inherit}textarea{width:100%;margin:8px 0;padding:14px;border-radius:10px;border:1px solid #9aaa9b;resize:vertical;background:#fafbf4}button{cursor:pointer;min-height:46px;padding:10px 16px;border:1px solid #afbdad;border-radius:9px;background:white;color:#123c33;font-weight:650}.primary{background:#c8f661;border-color:#99bb54}.row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}button:disabled{opacity:.45}.player{width:100%;text-align:left;margin:4px 0;overflow-wrap:anywhere}.player:after{content:'→';float:right}details{margin-top:9px}summary{cursor:pointer;padding:10px 0}.scores{display:flex;gap:8px;flex-wrap:wrap}.scores label{flex:1;min-width:80px;overflow-wrap:anywhere}input{display:block;width:100%;padding:10px;margin:5px 0;border:1px solid #aab9aa;border-radius:7px}.scores button{align-self:end}.badge{color:#56745e}.error{color:#a02f12}.winner{background:#d9f7a9}article{overflow-wrap:anywhere}nav{margin:16px 0}h3{margin:28px 0 4px} table{width:100%;border-collapse:collapse;margin:6px 0 12px}th,td{padding:6px 4px;text-align:center;border-bottom:1px solid #e3e8dc}th:first-child,td:first-child{text-align:left;overflow-wrap:anywhere}th{font:700 11px ui-monospace,monospace;text-transform:uppercase}select{font:inherit;padding:8px;border-radius:8px;border:1px solid #aab9aa;background:white;margin:0 0 12px}section article{background:#f7f8ee}.think p{animation:pulse 1s ease-in-out infinite}@keyframes pulse{50%{opacity:.3}}.tabs{display:flex;gap:8px;margin:0 0 4px}.tabs button{flex:1}.up{color:#2f7a3e}.down{color:#a02f12}[hidden]{display:none!important}.now{border:2px solid #99bb54;background:#f1fbd7!important}#sync{position:fixed;right:10px;bottom:10px;z-index:9;padding:7px 12px;border-radius:99px;background:#073d36;color:#f2f3e9;font:700 12px ui-monospace,monospace}#sync.failed,#sync.offline{background:#a02f12}#sync button{min-height:0;padding:2px 8px;margin-left:6px;font-size:12px}.rh>summary{font-size:20px;font-weight:800;letter-spacing:-.03em}details>summary{font-weight:650}
+</style><header><div class="inner"><div class="brand"><span class="logo">◉</span> raliu</div><div class="hero"><div><small>tenis de masă / eliminare directă</small><h1>turneu de<br>ping-pong.</h1></div><svg class="court" viewBox="0 0 150 120" aria-hidden="true"><g transform="rotate(-12 75 60)" stroke="#cbf865" fill="none" stroke-width="3"><rect x="12" y="23" width="126" height="75" rx="3"/><path d="M12 61h126M75 16v89"/><path stroke-dasharray="5 6" d="m32 77 66-39"/></g><circle cx="104" cy="30" r="9" fill="#ffab73"/></svg></div></div></header><main><nav class="tabs"><button id="tt" class="primary">turneu</button><button id="te">elo</button></nav><div id="tour"><section id="setup"><small>01 / înscrieri</small><h2>cine joacă?</h2><label for="names">scrie câte un nume pe fiecare rând.</label><textarea id="names" rows="6"></textarea><div><label for="adv">avansează din fiecare grupă: </label><select id="adv"><option value="2">primii 2</option><option value="1">doar primul</option></select></div><div class="row"><span id="count"></span><button class="primary" id="start">amestecă și începe ↗</button></div><div role="alert" id="error" class="error"></div></section><div id="board"></div></div><div id="eloview" hidden></div><section id="bk"><small>backup</small><h2>copie de siguranță</h2><p>salvează turneul și elo-ul într-un fișier sau restaurează dintr-un fișier.</p><div class="row"><button id="bx">descarcă backup</button><button id="bi">restaurează din fișier…</button></div><input type="file" id="bf" accept="application/json,.json" hidden><div id="bm" role="alert"></div></section></main><div id="sync" role="status"></div><script>
 const $=id=>document.getElementById(id),names=$('names'),key='raliu-tournament-v2';
 let state=null;try{state=JSON.parse(localStorage.getItem(key))}catch{}
 let ts=0;try{ts=+localStorage.getItem(key+'-t')||0}catch{}
@@ -52,18 +52,27 @@ else if(run.length>1){let p=run.filter(r=>pk.includes(r.n)).sort((x,y)=>pk.index
 out.push(...run)}
 return out}
 const gfin=gi=>fx(state.groups[gi]).every((_,i)=>state.results['g'+gi+'-'+i]);
-$('start').onclick=()=>{let players=entries();if(new Set(players.map(x=>x.toLocaleLowerCase('ro'))).size!==players.length){$('error').textContent='două nume coincid. adaugă o inițială ca să distingi jucătorii.';return}state={players,adv:+$('adv').value,groups:split(players),results:{},history:[],pairs:null};save();render()};
+$('start').onclick=()=>{let players=entries();if(new Set(players.map(x=>x.toLocaleLowerCase('ro'))).size!==players.length){$('error').textContent='două nume coincid. adaugă o inițială ca să distingi jucătorii.';return}state={tid:(crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2)+Date.now().toString(36)),players,adv:+$('adv').value,groups:split(players),results:{},history:[],pairs:null};save();render()};
 function el(tag,txt,cls,parent){let e=document.createElement(tag);if(txt!=null)e.textContent=txt;if(cls)e.className=cls;if(parent)parent.append(e);return e}
 function button(txt,cls,parent,fn){let b=el('button',txt,cls,parent);b.onclick=fn;return b}
 // cote zecimale din elo; 1.90 la 1.90 dacă unul dintre jucători nu are meciuri
-function odds(a,b){let A=E.r[nk(a)],B=E.r[nk(b)];if(!A||!B||!(A.g||A.s)||!(B.g||B.s))return{a:'1.90',b:'1.90',fav:null};let p=Math.min(.95,Math.max(.05,1/(1+10**((B.e-A.e)/400)))),f=x=>Math.max(1.05,.95/x).toFixed(2);return{a:f(p),b:f(1-p),fav:Math.abs(p-.5)<.02?null:p>.5?a:b}}
-function match(parent,a,b,id,label){let r=state.results[id],card=el('article',null,'',parent);el('small',label,'badge',card);
-function win(winner,scores){state.results[id]={winner,scores};state.history.push(id);elo(id,a,b,winner,scores);save();if(id[0]==='g'){think=+id.slice(1).split('-')[0];render();setTimeout(()=>{think=null;render()},900)}else render()}
+function odds(a,b){let A=E.r[nk(a)],B=E.r[nk(b)];if(!A||!B||!(A.g||A.s)||!(B.g||B.s))return{a:'1.90',b:'1.90',fav:null};let p=Math.min(.9962,Math.max(.0038,1/(1+10**((B.e-A.e)/400)))),f=x=>Math.min(250,Math.max(1.05,.95/x)).toFixed(2);return{a:f(p),b:f(1-p),fav:Math.abs(p-.5)<.02?null:p>.5?a:b}}
+function match(parent,a,b,id,label){let r=state.results[id],card=el('article',null,/^se joacă/.test(label)&&!r?'now':'',parent);el('small',label,'badge',card);
+function win(winner,scores){state.results[id]={winner,scores};state.history.push(id);elo(id,a,b,winner,scores);save();render()}
 if(r){el('p',a+' '+(r.scores?r.scores.join(' – '):' vs. ')+' '+b,null,card);el('strong','✓ '+r.winner,null,card)}
-else if(a&&b){let o=odds(a,b);el('p','apasă pe câștigător • cote după elo',null,card);[a,b].forEach((n,k)=>button(n+'  •  '+(k?o.b:o.a)+(o.fav===n?'  ⭐':''),'player',card,()=>win(n,null)));let det=el('div',null,'',card);el('small','sau introdu scorul','badge',det);let form=el('form',null,'scores',det),fields=[a,b].map(n=>{let lab=el('label',n,null,form),f=el('input',null,'',lab);Object.assign(f,{type:'number',inputMode:'numeric',min:'0',step:'1',required:true});return f});el('button','salvează','primary',form);let msg=el('div','','error',det);msg.setAttribute('role','alert');form.onsubmit=e=>{e.preventDefault();let s=fields.map(f=>Number(f.value));if(s[0]===s[1]){msg.textContent='scor egal. cine a câștigat meciul?';return}win(s[0]>s[1]?a:b,s)}}
+else if(a&&b){let o=odds(a,b);el('p','apasă pe câștigător • cote estimate înainte de meci, doar după elo',null,card);[a,b].forEach((n,k)=>button(n+'  •  '+(k?o.b:o.a)+(o.fav===n?'  ⭐':''),'player',card,()=>win(n,null)));let det=el('div',null,'',card);el('small','sau introdu scorul','badge',det);let form=el('form',null,'scores',det),fields=[a,b].map((n,k)=>{let lab=el('label',n,null,form),f=el('input',null,'',lab);Object.assign(f,{type:'number',inputMode:'numeric',min:'0',step:'1',required:true});f.dataset.k=JSON.stringify([draftScope(),id,a,b,k]);f.value=drafts[f.dataset.k]||'';return f});el('button','salvează','primary',form);let msg=el('div','','error',det);msg.setAttribute('role','alert');form.onsubmit=e=>{e.preventDefault();let s=fields.map(f=>Number(f.value));if(s[0]===s[1]){msg.textContent='scor egal. cine a câștigat meciul?';return}win(s[0]>s[1]?a:b,s)}}
 else el('p',(a||'în așteptare')+' vs. '+(b||'în așteptare'),null,card)}
 function crown(board,w,s2){let c=el('section',null,'winner');el('small','turneu încheiat',null,c);el('h2','🏆 '+w,null,c);if(s2)el('p','locul 2: '+s2,null,c);if(state.results['3rd'])el('p','locul 3: '+state.results['3rd'].winner,null,c);board.prepend(c)}
-function render(){let board=$('board');board.replaceChildren();$('setup').hidden=!!state;if(!state){count();return}
+let drafts={};
+function draftScope(){return JSON.stringify(state?[state.tid||null,state.players,state.groups]:null)}
+function clearDrafts(){drafts={};document.querySelectorAll('#board input[data-k]').forEach(i=>i.value='')}
+function render(){
+ const d={},focused=document.activeElement?.dataset?.k;
+ document.querySelectorAll('#board input[data-k]').forEach(i=>{if(i.value)d[i.dataset.k]=i.value});
+ drafts=d;render0();
+ if(focused){const field=[...document.querySelectorAll('#board input[data-k]')].find(i=>i.dataset.k===focused);if(field)field.focus()}
+}
+function render0(){let board=$('board');board.replaceChildren();$('setup').hidden=!!state;if(!state){count();return}
 let G=state.groups,nav=el('nav',null,'row',board);el('small',state.players.length+' participanți • '+G.length+(G.length===1?' grupă':' grupe'),null,nav);
 button('anulează ultimul rezultat','',nav,()=>{let id=state.history.pop();eloUndo(id);delete state.results[id];if(id[0]==='g'){state.pairs=null;if(state.tb)delete state.tb[+id.slice(1).split('-')[0]]}save();render()}).disabled=!state.history.length;
 let nb=button('turneu nou','',nav,()=>{if(state.history.length&&!nb.dataset.sure){nb.dataset.sure='1';nb.textContent='sigur? apasă din nou';setTimeout(()=>{nb.dataset.sure='';nb.textContent='turneu nou'},4000);return}names.value=state.players.join('\n');state=null;think=null;save();$('error').textContent='';render()});
@@ -73,25 +82,46 @@ G.forEach((g,gi)=>{if(cur>=0&&gi>cur)return;let s=el('section',null,'',board),ro
 let t=el('table',null,'',s),h=el('tr',null,'',el('thead',null,'',t));['jucător','J','V','+/−'].forEach(x=>el('th',x,null,h));
 let tb=el('tbody',null,'',t);rows.forEach((r,i)=>{let tr=el('tr',null,gok(gi)&&G.length>1&&i<K?'winner':'',tb);el('td',r.n,null,tr);el('td',r.j,null,tr);el('td',r.w,null,tr);el('td',r.sc?(r.d>0?'+'+r.d:r.d):'–',null,tr)});
 if(gfin(gi)&&rows.tie){let c=el('article',null,'',s),T=rows.tie;el('small','egalitate','badge',c);el('p','egalitate perfectă între '+T.run.map(r=>r.n).join(', ')+' — alege cine ocupă locul '+T.slot+' în grupă:',null,c);T.run.forEach(r=>button(r.n,'player',c,()=>{state.tb=state.tb||{};state.tb[gi]=(state.tb[gi]||[]).concat(r.n);save();render()}))}
-let seq=order(gi),p=seq.filter(m=>state.results[m.id]).length,shown=think===gi?p:p+1;seq.slice(0,shown).forEach((m,k)=>match(s,m.a,m.b,m.id,'meci '+(k+1)));
-if(think===gi&&p<seq.length){let c=el('article',null,'think',s);el('small','meci '+(p+1),'badge',c);el('p','se alege următorul meci…',null,c)}
-else if(shown<seq.length)el('small','încă '+(seq.length-shown)+(seq.length-shown===1?' meci':' meciuri')+' în grupă',null,s)});
+let seq=order(gi),p=seq.filter(m=>state.results[m.id]).length;
+if(p){let d=el('details',null,'',s);el('summary','meciuri jucate ('+p+')',null,d);seq.slice(0,p).forEach((m,k)=>match(d,m.a,m.b,m.id,'meci '+(k+1)))}
+if(p<seq.length){let m=seq[p],r=seq.length-p-1;match(s,m.a,m.b,m.id,'se joacă acum • meci '+(p+1));if(r)el('small','încă '+r+(r===1?' meci':' meciuri')+' în grupă • urmează probabil '+seq[p+1].a+' – '+seq[p+1].b,null,s)}});
 if(cur>=0&&cur<G.length-1)el('small','grupa '+letters(cur+1)+' apare după ce se termină grupa '+letters(cur),null,board);
 if(!done)return;
 if(G.length===1){crown(board,table(0)[0].n);return}
 if(!state.pairs){state.pairs=seed(G.flatMap((g,gi)=>table(gi).slice(0,state.adv).map(r=>({n:r.n,g:gi}))));save()}
 el('h3','faza eliminatorie',null,board);
-let pairs=state.pairs,round=0,block=false;
-while(pairs.length){let next=[];el('h3',pairs.length===1?'finală':pairs.length===2?'semifinale':pairs.length===4?'sferturi de finală':'turul '+(round+1),null,board);
+let pairs=state.pairs,round=0,block=false,nw=false;
+while(pairs.length){let next=[];let rd=el('details',null,'rh',board);rd.open=true;el('summary',pairs.length===1?'finală':pairs.length===2?'semifinale':pairs.length===4?'sferturi de finală':pairs.length===8?'optimi de finală':'turul '+(round+1),null,rd);
 pairs.forEach(([a,b],i)=>{if(block){next.push(undefined);return}let id=round+'-'+i,bye=round===0&&b===null,winner;
-if(bye){winner=a;let c=el('article',null,'',board);el('small','meci '+(i+1),'badge',c);el('p',a+' trece automat în turul următor.',null,c)}
-else{match(board,a,b,id,'meci '+(i+1));winner=state.results[id]&&state.results[id].winner;if(!winner)block=true}
+if(bye){winner=a;let c=el('article',null,'',rd);el('small','meci '+(i+1),'badge',c);el('p',a+' trece automat în turul următor.',null,c)}
+else{let lab=!state.results[id]&&a&&b&&!nw?(nw=true,'se joacă acum • meci '+(i+1)):'meci '+(i+1);match(rd,a,b,id,lab);winner=state.results[id]&&state.results[id].winner;if(!winner)block=true}
 next.push(winner);if(pairs.length===1&&winner)crown(board,winner,winner===a?b:a)});
-if(pairs.length===2&&!block&&!(round===0&&pairs.some(p=>p[1]===null))){let L=pairs.map(([a,b],i)=>{let r=state.results[round+'-'+i];return r.winner===a?b:a});el('h3','mica finală',null,board);match(board,L[0],L[1],'3rd','meci');if(!state.results['3rd'])block=true}
-if(block||next.length===1)break;pairs=[];for(let j=0;j<next.length;j+=2)pairs.push(next.slice(j,j+2));round++}}
+if(pairs.length===2&&!block&&!(round===0&&pairs.some(p=>p[1]===null))){let L=pairs.map(([a,b],i)=>{let r=state.results[round+'-'+i];return r.winner===a?b:a});el('h3','mica finală',null,board);match(board,L[0],L[1],'3rd',state.results['3rd']?'meci':'se joacă acum • mica finală');if(!state.results['3rd'])block=true}
+if(!block&&pairs.length>1)rd.open=false;if(block||next.length===1)break;pairs=[];for(let j=0;j<next.length;j+=2)pairs.push(next.slice(j,j+2));round++}}
 // ---- cloud: elo + turneu salvate online (Claude db în artifact, Supabase pe GitHub Pages) ----
 let cloud=null,pt={};
-function push(path,get,t){if(!cloud)return;clearTimeout(pt[path]);pt[path]=setTimeout(()=>{try{Promise.resolve(cloud.doc(path).set({t,s:get()})).catch(()=>{})}catch{}},500)}
+const bad={},pend={},upd=()=>{if(Object.keys(pend).length)return;setSync(Object.keys(bad).length?(navigator.onLine?'failed':'offline'):'saved')};
+function setSync(s){const e=$('sync');e.replaceChildren();e.className=s;e.append({local:'salvat doar pe acest telefon',saving:'se salvează…',saved:'salvat online ✓',failed:'nu s-a salvat online',offline:'fără internet'}[s]);if(s==='failed'||s==='offline')button('reîncearcă','',e,retry)}
+function retry(){push('tournament/current',()=>JSON.stringify(state),ts||(ts=Date.now()));push('elo/ratings',()=>JSON.stringify(E),E.t||(E.t=Date.now()));if(window.pullNow)pullNow()}
+// One in-flight write per document; retain an immutable snapshot of the latest queued save.
+const queues={};
+function push(path,get,t){
+ if(!cloud){setSync('local');return}
+ const q=queues[path]||(queues[path]={running:false,next:null});
+ q.next={t,s:get()};pend[path]=1;setSync('saving');
+ clearTimeout(pt[path]);pt[path]=setTimeout(()=>flush(path),500);
+}
+async function flush(path){
+ const q=queues[path];if(!q||q.running||!q.next)return;
+ q.running=true;
+ try{
+  while(q.next){
+   const payload=q.next;q.next=null;
+   try{const r=await cloud.doc(path).set(payload);if(r&&r.ok===false)throw new Error('HTTP '+r.status);delete bad[path]}
+   catch{bad[path]=1}
+  }
+ }finally{q.running=false;delete pend[path];upd()}
+}
 const applyElo=d=>{if(d&&d.t>(E.t||0)){try{E=JSON.parse(d.s)}catch{return}E.t=d.t;try{localStorage.setItem(ek,d.s)}catch{}if(tab==='e')eloRender()}
 else if((!d||d.t<(E.t||0))&&Object.keys(E.r).length)push('elo/ratings',()=>JSON.stringify(E),E.t||(E.t=Date.now()))};
 const applyTour=d=>{if(d&&d.t>ts){try{state=JSON.parse(d.s)}catch{return}ts=d.t;try{localStorage.setItem(key,d.s);localStorage.setItem(key+'-t',ts)}catch{}render()}
@@ -99,10 +129,81 @@ else if((!d||d.t<ts)&&(state||ts))push('tournament/current',()=>JSON.stringify(s
 const SB='https://btquwmcthsbhzdsshexs.supabase.co/rest/v1/kv',SH={apikey:'sb_publishable_ZDgp0JCNK8IAhI8COMC5OQ_hzj4V_6U','Content-Type':'application/json'};
 function startSupabase(){
 cloud={doc:path=>({set:d=>fetch(SB+'?on_conflict=id',{method:'POST',headers:{...SH,Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:path,t:d.t,s:d.s})})})};
-const pull=async()=>{if(document.hidden)return;try{for(const [p,f] of [['elo/ratings',applyElo],['tournament/current',applyTour]]){let r=await fetch(SB+'?id=eq.'+encodeURIComponent(p)+'&select=t,s',{headers:SH});if(!r.ok)continue;let a=await r.json();f(a[0]||null)}}catch{}};
+const pull=async()=>{if(document.hidden)return;try{for(const [p,f] of [['elo/ratings',applyElo],['tournament/current',applyTour]]){let r=await fetch(SB+'?id=eq.'+encodeURIComponent(p)+'&select=t,s',{headers:SH});if(!r.ok)throw 0;let a=await r.json();f(a[0]||null)}delete bad.pull}catch{bad.pull=1}upd()};window.pullNow=pull;
 pull();setInterval(pull,5000);document.addEventListener('visibilitychange',pull)}
-(async()=>{try{let u=await claude.use('db');if(!u)throw 0;cloud=u;
+(async()=>{try{let u=await claude.use('db');if(!u)throw 0;cloud=u;upd();
 u.doc('elo/ratings').onSnapshot(sn=>applyElo(sn.exists&&sn.data()),()=>{});
 u.doc('tournament/current').onSnapshot(sn=>applyTour(sn.exists&&sn.data()),()=>{})}catch{startSupabase()}})();
+// ---- backup: validează înainte să schimbe ceva ----
+// Validate the complete candidate before restore can mutate or publish state.
+function validateBackup(d){
+ const obj=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
+ const integer=x=>Number.isSafeInteger(x);
+ const count=x=>integer(x)&&x>=0;
+ const name=x=>typeof x==='string'&&x.trim()===x&&x.length>0&&!['__proto__','constructor','prototype'].includes(x);
+ const unique=a=>new Set(a).size===a.length;
+ const check=(v,message)=>{if(!v)throw new Error(message)};
+ check(obj(d)&&d.app==='raliu'&&d.v===1,'format necunoscut');
+ const L=d.elo,T=d.tournament;
+ check(obj(L)&&obj(L.r)&&Array.isArray(L.log),'elo invalid');
+ check(L.t===undefined||count(L.t),'data elo invalidă');
+ const keys=Object.keys(L.r);
+ check(keys.every(name)&&unique(keys.map(n=>n.toLocaleLowerCase('ro'))),'nume elo invalide');
+ for(const x of Object.values(L.r))check(obj(x)&&integer(x.e)&&count(x.g)&&count(x.w)&&x.w<=x.g&&integer(x.c)&&(x.s===undefined||x.s===1),'statistici elo invalide');
+ for(const x of L.log)check(obj(x)&&name(x.t)&&typeof x.id==='string'&&/^(g\d+-\d+|\d+-\d+|3rd)$/.test(x.id)&&name(x.a)&&name(x.b)&&x.a!==x.b&&[x.a,x.b].includes(x.w)&&integer(x.da)&&integer(x.db)&&x.da===-x.db&&integer(x.pa)&&integer(x.pb),'istoric elo invalid');
+ if(T===null)return d;
+ check(obj(T)&&Array.isArray(T.players)&&T.players.length>=2&&T.players.every(name)&&unique(T.players.map(n=>n.toLocaleLowerCase('ro'))),'jucători invalizi');
+ check([1,2].includes(T.adv)&&Array.isArray(T.groups)&&T.groups.length>0&&T.groups.every(g=>Array.isArray(g)&&g.length>=2&&g.every(n=>T.players.includes(n))),'grupe invalide');
+ const members=T.groups.flat();check(unique(members)&&members.length===T.players.length,'grupele nu corespund jucătorilor');
+ check(T.tid===undefined||name(T.tid),'id de turneu invalid');
+ check(obj(T.results)&&Array.isArray(T.history)&&T.history.every(x=>typeof x==='string')&&unique(T.history),'istoric invalid');
+ const ids=Object.keys(T.results);
+ check(ids.length===T.history.length&&T.history.every(id=>Object.hasOwn(T.results,id)),'rezultate lipsă din istoric');
+ for(const r of Object.values(T.results))check(obj(r)&&name(r.winner)&&(r.scores==null||(Array.isArray(r.scores)&&r.scores.length===2&&r.scores.every(count)&&r.scores[0]!==r.scores[1])),'scor invalid');
+ if(T.tb!==undefined){
+  check(obj(T.tb),'departajări invalide');
+  for(const [gi,picks] of Object.entries(T.tb))check(/^(0|[1-9]\d*)$/.test(gi)&&T.groups[+gi]&&Array.isArray(picks)&&unique(picks)&&picks.every(n=>T.groups[+gi].includes(n)),'departajare invalidă');
+ }
+ const matches=new Map(),groupIds=[];
+ const add=(id,a,b,deps=[])=>{matches.set(id,{a,b,deps});const r=T.results[id];if(r){check(a&&b&&a!==b&&[a,b].includes(r.winner),'câștigător invalid: '+id);if(r.scores)check(r.winner===(r.scores[0]>r.scores[1]?a:b),'scorul nu corespunde câștigătorului: '+id)}return r?.winner};
+ T.groups.forEach((g,gi)=>fx(g).forEach(([a,b],i)=>{const id='g'+gi+'-'+i;groupIds.push(id);add(id,a,b)}));
+ if(T.pairs!=null){
+  check(T.groups.length>1&&groupIds.every(id=>T.results[id]),'tablou înainte de încheierea grupelor');
+  let qualified;
+  const previous=state;
+  try{state=T;qualified=T.groups.flatMap((g,gi)=>{const rows=table(gi);check(!rows.tie,'departajare nerezolvată');return rows.slice(0,T.adv).map(r=>r.n)})}finally{state=previous}
+  const size=2**Math.ceil(Math.log2(qualified.length));
+  check(Array.isArray(T.pairs)&&T.pairs.length===size/2&&T.pairs.every(p=>Array.isArray(p)&&p.length===2&&name(p[0])&&(p[1]===null||name(p[1]))),'tablou invalid');
+  const seeded=T.pairs.flat().filter(n=>n!==null);
+  check(unique(seeded)&&seeded.length===qualified.length&&seeded.every(n=>qualified.includes(n)),'calificați incorecți');
+  let pairs=T.pairs,round=0,deps=groupIds.slice();
+  while(pairs.length){
+   const next=[],roundIds=[];
+   pairs.forEach(([a,b],i)=>{const id=round+'-'+i;if(round===0&&b===null){next.push(a);return}roundIds.push(id);next.push(add(id,a,b,deps))});
+   let third=false;
+   if(pairs.length===2&&!(round===0&&pairs.some(p=>p[1]===null))){
+    third=true;const losers=pairs.map(([a,b],i)=>next[i]?(next[i]===a?b:a):undefined);
+    add('3rd',losers[0],losers[1],roundIds);
+   }
+   if(pairs.length===1)break;
+   deps=roundIds.concat(third?['3rd']:[]);pairs=[];
+   for(let i=0;i<next.length;i+=2)pairs.push(next.slice(i,i+2));round++;
+  }
+ }
+ const seen=new Set();
+ for(const id of T.history){const match=matches.get(id);check(match&&match.deps.every(dep=>seen.has(dep)),'ordre de meciuri invalidă: '+id);seen.add(id)}
+ return d;
+}
+function bk(){const m=$('bm'),no=x=>{m.replaceChildren();el('p',x+' nu s-a schimbat nimic.','error',m)},str=x=>typeof x==='string'&&x.trim()!=='';
+$('bx').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({app:'raliu',v:1,saved:new Date().toISOString(),tournament:state,elo:E},null,1)],{type:'application/json'}));a.download='raliu-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)};
+$('bi').onclick=()=>$('bf').click();
+$('bf').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;let d;try{d=JSON.parse(await f.text())}catch{return no('fișierul nu e un JSON valid.')}
+try{validateBackup(d)}catch(err){return no('backup invalid: '+err.message+'.')}
+const T=d.tournament,L=d.elo;
+m.replaceChildren();const c=el('article',null,'',m);el('strong','backup din '+(d.saved?new Date(d.saved).toLocaleString('ro'):'dată necunoscută'),null,c);
+el('p',(T?'turneu: '+T.players.length+' jucători, '+Object.keys(T.results).length+' rezultate':'fără turneu activ')+' • elo: '+Object.keys(L.r).length+' jucători',null,c);
+el('p','⚠ restaurarea înlocuiește turneul și elo-ul de acum'+(cloud?', iar schimbarea se trimite online și pentru ceilalți conectați.':' de pe acest telefon.'),'error',c);
+const r=el('div',null,'row',c);button('restaurează','primary',r,()=>{clearDrafts();state=T;E=L;save();esave();m.replaceChildren();el('p','restaurat ✓','badge',m);render();tabs()});button('anulează','',r,()=>m.replaceChildren())}}
+bk();setSync('local');
 render()
 </script></html>
