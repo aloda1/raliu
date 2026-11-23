@@ -4,7 +4,7 @@
 const $=id=>document.getElementById(id),names=$('names'),key='raliu-tournament-v2';
 let state=null;try{state=JSON.parse(localStorage.getItem(key))}catch{}
 let ts=0;try{ts=+localStorage.getItem(key+'-t')||0}catch{}
-function save(){ts=Date.now();try{localStorage.setItem(key,JSON.stringify(state));localStorage.setItem(key+'-t',ts)}catch{}push('tournament/current',()=>JSON.stringify(state),ts)}
+function save(){ts=Math.max(Date.now(),ts+1);try{localStorage.setItem(key,JSON.stringify(state));localStorage.setItem(key+'-t',ts)}catch{}push('tournament/current',()=>JSON.stringify(state),ts)}
 const entries=()=>names.value.split(/\r?\n/).map(n=>n.trim()).filter(Boolean);
 // grupe de ~3: 10 -> 4+3+3, 7 -> 4+3, 12 -> 3+3+3+3
 function sizes(n){let g=Math.max(1,Math.floor(n/3)),base=Math.floor(n/g),extra=n%g;return Array.from({length:g},(_,i)=>base+(i<extra?1:0))}
@@ -18,7 +18,7 @@ function seed(q){let size=2**Math.ceil(Math.log2(q.length)),best;for(let t=0;t<2
 let think=null;
 // ---- elo (separat de turneu, rămâne salvat în browser) ----
 const ek='raliu-elo-v1';let E={r:{},log:[]};try{E=JSON.parse(localStorage.getItem(ek))||E}catch{}
-const esave=()=>{E.t=Date.now();if(E.log.length>300)E.log=E.log.slice(-300);try{localStorage.setItem(ek,JSON.stringify(E))}catch{}push('elo/ratings',()=>JSON.stringify(E),E.t)};
+const esave=()=>{E.t=Math.max(Date.now(),(E.t||0)+1);if(E.log.length>300)E.log=E.log.slice(-300);try{localStorage.setItem(ek,JSON.stringify(E))}catch{}push('elo/ratings',()=>JSON.stringify(E),E.t)};
 const nk=n=>Object.keys(E.r).find(k=>k.toLowerCase()===n.toLowerCase())||n;
 function elo(id,a,b,w,sc){state.tid=state.tid||Math.random().toString(36).slice(2);let P=n=>{n=nk(n);return E.r[n]||(E.r[n]={e:1000,g:0,w:0,c:0})},A=P(a),B=P(b),ea=1/(1+10**((B.e-A.e)/400)),win=w===a,d=sc?Math.min(Math.abs(sc[0]-sc[1]),11):0,k=32*(1+d/11),da=Math.round(k*((win?1:0)-ea)),db=-da;
 E.log.push({t:state.tid,id,a,b,w,da,db,pa:A.c,pb:B.c});A.e+=da;B.e+=db;A.g++;B.g++;(win?A:B).w++;A.c=da;B.c=db;esave()}
@@ -32,7 +32,7 @@ if(!rows.length){el('p','niciun meci încă. rezultatele din turneu apar aici.',
 let t=el('table',null,'',s),h=el('tr',null,'',el('thead',null,'',t));['jucător','elo','±','J','V'].forEach(x=>el('th',x,null,h));let tb=el('tbody',null,'',t);
 rows.forEach(([n,x],i)=>{let tr=el('tr',null,'',tb);let td=el('td',(i+1)+'. '+n,null,tr);button('×','',td,()=>{delete E.r[n];esave();eloRender()}).style.cssText='display:inline-block;width:auto;min-height:0;margin-left:8px;padding:0 8px';el('td',x.e,null,tr);el('td',x.c>0?'▲'+x.c:x.c<0?'▼'+(-x.c):'–',x.c>0?'up':x.c<0?'down':'',tr);el('td',x.g,null,tr);el('td',x.w,null,tr)});
 let rb=button('resetează elo','',s,()=>{if(!rb.dataset.sure){rb.dataset.sure='1';rb.textContent='sigur? apasă din nou';setTimeout(()=>{rb.dataset.sure='';rb.textContent='resetează elo'},4000);return}E={r:{},log:[]};esave();eloRender()})}
-let tab='t';function tabs(){$('tour').hidden=tab!=='t';$('eloview').hidden=tab!=='e';$('tt').className=tab==='t'?'primary':'';$('te').className=tab==='e'?'primary':'';if(tab==='e')eloRender()}
+let tab='t';function tabs(){$('tour').hidden=tab!=='t';$('eloview').hidden=tab!=='e';$('tt').className=tab==='t'?'primary':'';$('te').className=tab==='e'?'primary':'';if(tab==='e')eloRender();else render()}
 $('tt').onclick=()=>{tab='t';tabs()};$('te').onclick=()=>{tab='e';tabs()};
 const letters=i=>String.fromCharCode(65+i);
 const fx=g=>g.flatMap((a,i)=>g.slice(i+1).map(b=>[a,b]));
@@ -157,11 +157,17 @@ else{let lab=!state.results[id]&&a&&b&&!nw?(nw=true,'se joacă acum • meci '+(
 next.push(winner);if(pairs.length===1&&winner)crown(board,winner,winner===a?b:a)});
 if(pairs.length===2&&!block&&!(round===0&&pairs.some(p=>p[1]===null))){let L=pairs.map(([a,b],i)=>{let r=state.results[round+'-'+i];return r.winner===a?b:a});el('h3','mica finală',null,board);match(board,L[0],L[1],'3rd',state.results['3rd']?'meci':'se joacă acum • mica finală');if(!state.results['3rd'])block=true}
 if(!block&&pairs.length>1)rd.open=false;if(block||next.length===1)break;pairs=[];for(let j=0;j<next.length;j+=2)pairs.push(next.slice(j,j+2));round++}}
-// ---- cloud: elo + turneu salvate online (Claude db în artifact, Supabase pe GitHub Pages) ----
-let cloud=null,pt={};
-const bad={},pend={},upd=()=>{if(Object.keys(pend).length)return;setSync(Object.keys(bad).length?(navigator.onLine?'failed':'offline'):'saved')};
+// Cloud Firestore stores the tournament and Elo in separate documents.
+let cloud=null;
+const pt={},bad={},pend={},ready=new Set();
+function upd(){
+ if(!navigator.onLine)return setSync('offline');
+ if(Object.keys(bad).length)return setSync('failed');
+ if(Object.keys(pend).length)return setSync('saving');
+ setSync(ready.size===2?'saved':'local');
+}
 function setSync(s){const e=$('sync');e.replaceChildren();e.className=s;e.append({local:'salvat doar pe acest telefon',saving:'se salvează…',saved:'salvat online ✓',failed:'nu s-a salvat online',offline:'fără internet'}[s]);if(s==='failed'||s==='offline')button('reîncearcă','',e,retry)}
-function retry(){push('tournament/current',()=>JSON.stringify(state),ts||(ts=Date.now()));push('elo/ratings',()=>JSON.stringify(E),E.t||(E.t=Date.now()));if(window.pullNow)pullNow()}
+function retry(){startFirebase()}
 // One in-flight write per document; retain an immutable snapshot of the latest queued save.
 const queues={};
 function push(path,get,t){
@@ -181,18 +187,55 @@ async function flush(path){
   }
  }finally{q.running=false;delete pend[path];upd()}
 }
-const applyElo=d=>{if(d&&d.t>(E.t||0)){try{E=JSON.parse(d.s)}catch{return}E.t=d.t;try{localStorage.setItem(ek,d.s)}catch{}if(tab==='e')eloRender()}
-else if((!d||d.t<(E.t||0))&&Object.keys(E.r).length)push('elo/ratings',()=>JSON.stringify(E),E.t||(E.t=Date.now()))};
+const applyElo=d=>{if(d&&d.t>(E.t||0)){try{E=JSON.parse(d.s)}catch{return}E.t=d.t;try{localStorage.setItem(ek,d.s)}catch{}if(tab==='e')eloRender();else render()}
+else if((!d||d.t<(E.t||0))&&(E.t||Object.keys(E.r).length))push('elo/ratings',()=>JSON.stringify(E),E.t||(E.t=Date.now()))};
 const applyTour=d=>{if(d&&d.t>ts){try{state=JSON.parse(d.s)}catch{return}ts=d.t;try{localStorage.setItem(key,d.s);localStorage.setItem(key+'-t',ts)}catch{}render()}
 else if((!d||d.t<ts)&&(state||ts))push('tournament/current',()=>JSON.stringify(state),ts||(ts=Date.now()))};
-const SB='https://btquwmcthsbhzdsshexs.supabase.co/rest/v1/kv',SH={apikey:'sb_publishable_ZDgp0JCNK8IAhI8COMC5OQ_hzj4V_6U','Content-Type':'application/json'};
-function startSupabase(){
-cloud={doc:path=>({set:d=>fetch(SB+'?on_conflict=id',{method:'POST',headers:{...SH,Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:path,t:d.t,s:d.s})})})};
-const pull=async()=>{if(document.hidden)return;try{for(const [p,f] of [['elo/ratings',applyElo],['tournament/current',applyTour]]){let r=await fetch(SB+'?id=eq.'+encodeURIComponent(p)+'&select=t,s',{headers:SH});if(!r.ok)throw 0;let a=await r.json();f(a[0]||null)}delete bad.pull}catch{bad.pull=1}upd()};window.pullNow=pull;
-pull();setInterval(pull,5000);document.addEventListener('visibilitychange',pull)}
-(async()=>{try{let u=await claude.use('db');if(!u)throw 0;cloud=u;upd();
-u.doc('elo/ratings').onSnapshot(sn=>applyElo(sn.exists&&sn.data()),()=>{});
-u.doc('tournament/current').onSnapshot(sn=>applyTour(sn.exists&&sn.data()),()=>{})}catch{startSupabase()}})();
+let connecting=false;
+const listeners=[];
+async function startFirebase(){
+ if(connecting)return;
+ connecting=true;
+ try{
+  const base='https://www.gstatic.com/firebasejs/10.14.1/';
+  const [{initializeApp,getApps},{getFirestore,doc,onSnapshot,runTransaction}]=await Promise.all([
+   import(base+'firebase-app.js'),import(base+'firebase-firestore.js')
+  ]);
+  const app=getApps()[0]||initializeApp({
+   projectId:'raliu-ae011',authDomain:'raliu-ae011.firebaseapp.com',
+   apiKey:'AIzaSyDzskQc2sr-FoD45U9lZa3HX67vuVhUUbk'
+  });
+  const db=getFirestore(app);
+  cloud={doc:path=>({set:payload=>runTransaction(db,async tx=>{
+   const ref=doc(db,path),current=await tx.get(ref);
+   if(!current.exists()||current.data().t<payload.t)tx.set(ref,payload);
+  })})};
+  listeners.splice(0).forEach(stop=>stop());
+  ready.clear();
+  delete bad.connect;
+  for(const [path,apply] of [['elo/ratings',applyElo],['tournament/current',applyTour]]){
+   const ref=doc(db,path);
+   const stop=onSnapshot(ref,{includeMetadataChanges:true},snap=>{
+    if(snap.metadata.fromCache||snap.metadata.hasPendingWrites){ready.delete(path);upd();return}
+    delete bad[path];
+    ready.add(path);
+    const data=snap.exists()?snap.data():null;
+    try{
+     if(data){
+      if(!Number.isSafeInteger(data.t)||typeof data.s!=='string')throw Error('format invalid');
+      JSON.parse(data.s);
+     }
+     apply(data);
+    }catch{bad[path]=1}
+    upd();
+   },error=>{console.warn('firestore',path,error.code);bad[path]=1;ready.delete(path);upd()});
+   listeners.push(stop);
+  }
+ }catch(error){console.warn('firestore',error);bad.connect=1}
+ finally{connecting=false;upd()}
+}
+window.addEventListener('online',retry);
+window.addEventListener('offline',upd);
 // ---- backup: validează înainte să schimbe ceva ----
 // Validate the complete candidate before restore can mutate or publish state.
 function validateBackup(d){
@@ -263,6 +306,6 @@ m.replaceChildren();const c=el('article',null,'',m);el('strong','backup din '+(d
 el('p',(T?'turneu: '+T.players.length+' jucători, '+Object.keys(T.results).length+' rezultate':'fără turneu activ')+' • elo: '+Object.keys(L.r).length+' jucători',null,c);
 el('p','⚠ restaurarea înlocuiește turneul și elo-ul de acum'+(cloud?', iar schimbarea se trimite online și pentru ceilalți conectați.':' de pe acest telefon.'),'error',c);
 const r=el('div',null,'row',c);button('restaurează','primary',r,()=>{clearDrafts();state=T;E=L;save();esave();m.replaceChildren();el('p','restaurat ✓','badge',m);render();tabs()});button('anulează','',r,()=>m.replaceChildren())}}
-bk();setSync('local');
+bk();setSync('local');startFirebase();
 render()
 </script></html>
