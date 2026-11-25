@@ -11,7 +11,7 @@ function renderHeadToHead(section, log) {
     historyPair = [historyName(latest.a), historyName(latest.b)];
   }
 
-  el('h3', 'h2h', null, section);
+  el('h3', 'meciuri directe', null, section);
   const table = el('table', null, 'head-to-head', section);
   const header = el('tr', null, null, el('thead', null, null, table));
   el('th', 'jucător', null, header);
