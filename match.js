@@ -34,7 +34,7 @@ else if(a&&b){
   const score=read();
   if(!isDeuce(score))return;
   if(advantage.value===score[0]+':'+k){
-   score[k]+=2;
+   score[k]+=1;
    win(players[k],score);
   }else{
    advantage.value=score[0]+':'+k;
@@ -88,7 +88,7 @@ else if(a&&b){
   e.preventDefault();
   const score=read();
   if(!raliuOdds.validScore(score)||!raliuOdds.finished(score,target)){
-   msg.textContent='primul la '+target+', cu avantaj de două puncte.';
+   msg.textContent='primul la '+target+', fără egalitate.';
    return;
   }
   win(score[0]>score[1]?a:b,score);

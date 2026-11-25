@@ -15,12 +15,16 @@ const raliuOdds = (() => {
       score.every(n => Number.isSafeInteger(n) && n >= 0);
   }
   function finished([x,y], target) {
+    return Math.max(x,y) >= target && x !== y;
+  }
+  // Internal rally simulation uses a virtual extra point for advantage.
+  function gameFinished([x,y], target) {
     return Math.max(x,y) >= target && Math.abs(x-y) >= 2;
   }
   // Distribution of the next N rallies. At the end of those rallies a tie goes to deuce.
   // Starting at the binomial mode avoids factorials, overflow and recursion.
   function game(x, y, p, target) {
-    if (finished([x,y], target)) return Number(x > y);
+    if (gameFinished([x,y], target)) return Number(x > y);
     const q = 1-p, deuce = p*p / (p*p + q*q), edge = target-1;
     if (Math.min(x,y) >= edge) {
       if (x === y) return deuce;
