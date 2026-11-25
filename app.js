@@ -3,16 +3,25 @@ let state=null;try{state=JSON.parse(localStorage.getItem(key))}catch{}
 function el(tag,txt,cls,parent){let e=document.createElement(tag);if(txt!=null)e.textContent=txt;if(cls)e.className=cls;if(parent)parent.append(e);return e}
 function button(txt,cls,parent,fn){let b=el('button',txt,cls,parent);b.onclick=fn;return b}
 
-const navigation = [['t','tour','tt'],['e','eloview','te'],['h','historyview','th']];
-const tabKey = 'raliu-active-tab';
-let tab = 't';
-try {
- const saved = sessionStorage.getItem(tabKey);
- if (navigation.some(([value]) => value === saved)) tab = saved;
-} catch {}
+const navigation = [
+ ['t','tour','tt','turneu'],
+ ['e','eloview','te','elo'],
+ ['h','historyview','th','history']
+];
+const base = document.querySelector('base');
+base.href = document.baseURI;
+function routeTab(){
+ const path = location.pathname.replace(/\/index\.html$/, '/').replace(/\/$/, '');
+ const route = navigation.find(([,,,slug]) => new URL(slug,base.href).pathname === path);
+ return route ? route[0] : 't';
+}
+let tab = routeTab();
 function tabs(){
+ $('bk').hidden=tab!=='h';
  for(const [value,view,control] of navigation){
   $(view).hidden=tab!==value;
+  if(tab===value)$(control).setAttribute('aria-current','page');
+  else $(control).removeAttribute('aria-current');
   $(control).className=tab===value?'primary':'';
  }
  if(tab==='e')eloRender();
@@ -20,12 +29,16 @@ function tabs(){
  else render();
 }
 for(const [value,,id] of navigation){
- $(id).onclick=()=>{
+ const link=$(id);
+ link.onclick=event=>{
+  if(event.button!==0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey)return;
+  event.preventDefault();
+  if(location.href!==link.href)window.history.pushState(null,'',link.href);
   tab=value;
-  try { sessionStorage.setItem(tabKey,value); } catch {}
   tabs();
  };
 }
+window.addEventListener('popstate',()=>{tab=routeTab();tabs()});
 
 names.oninput=count;
 

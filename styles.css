@@ -13,7 +13,7 @@ h2{margin:0 0 8px;letter-spacing:-.04em}
 p{line-height:1.5;margin:7px 0 16px}
 textarea,input,button{font:inherit}
 textarea{width:100%;margin:8px 0;padding:14px;border-radius:10px;border:1px solid #9aaa9b;resize:vertical;background:#fafbf4}
-button{cursor:pointer;min-height:46px;padding:10px 16px;border:1px solid #afbdad;border-radius:9px;background:white;color:#123c33;font-weight:650}
+button,.tabs a{cursor:pointer;min-height:46px;padding:10px 16px;border:1px solid #afbdad;border-radius:9px;background:white;color:#123c33;font-weight:650}
 .primary{background:#c8f661;border-color:#99bb54}
 .row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 button:disabled{opacity:.45}
@@ -41,7 +41,7 @@ section article{background:#f7f8ee}
 @keyframes pulse{50%{opacity:.3}
 }
 .tabs{display:flex;gap:8px;margin:0 0 4px}
-.tabs button{flex:1}
+.tabs a{display:grid;place-items:center;flex:1;text-decoration:none}
 .up{color:#2f7a3e}
 .down{color:#a02f12}
 [hidden]{display:none!important}

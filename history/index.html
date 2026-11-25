@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<base href="../">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#073d36">
+<title>raliu • turneu de ping-pong
+</title>
+<link rel="stylesheet" href="./styles.css?v=c1ddbd2e2609">
+</head>
+<body>
+<header>
+<div class="inner">
+<div class="brand"><span class="logo">◉</span> raliu
+</div>
+<div class="hero">
+<div>
+<small>tenis de masă / eliminare directă
+</small>
+<h1>turneu de<br>ping-pong.
+</h1>
+</div>
+<svg class="court" viewBox="0 0 150 120" aria-hidden="true"><g transform="rotate(-12 75 60)" stroke="#cbf865" fill="none" stroke-width="3"><rect x="12" y="23" width="126" height="75" rx="3"/><path d="M12 61h126M75 16v89"/><path stroke-dasharray="5 6" d="m32 77 66-39"/></g><circle cx="104" cy="30" r="9" fill="#ffab73"/>
+</svg>
+</div>
+</div>
+</header>
+<main>
+<nav class="tabs">
+<a id="tt" href="./turneu/" class="primary">turneu
+</a>
+<a id="te" href="./elo/">elo
+</a>
+<a id="th" href="./history/">istoric
+</a>
+</nav>
+<div id="tour">
+<section id="setup">
+<small>01 / înscrieri
+</small>
+<h2>cine joacă?
+</h2>
+<label for="names">scrie câte un nume pe fiecare rând.
+</label>
+<textarea id="names" rows="6">
+</textarea>
+<div>
+<label for="adv">avansează din fiecare grupă: 
+</label>
+<select id="adv">
+<option value="2">primii 2
+</option>
+<option value="1">doar primul
+</option>
+</select>
+</div>
+<div class="row"><span id="count"></span>
+<button class="primary" id="start">amestecă și începe ↗
+</button>
+</div>
+<div role="alert" id="error" class="error">
+</div>
+</section>
+<div id="board">
+</div>
+</div>
+<div id="eloview" hidden>
+</div>
+<div id="historyview" hidden>
+</div>
+<section id="bk" hidden>
+<small>backup
+</small>
+<h2>copie de siguranță
+</h2><p>salvează turneul și elo-ul într-un fișier sau restaurează dintr-un fișier.</p>
+<div class="row">
+<button id="bx">descarcă backup
+</button>
+<button id="bi">restaurează din fișier…
+</button>
+</div>
+<input type="file" id="bf" accept="application/json,.json" hidden>
+<div id="bm" role="alert">
+</div>
+</section>
+</main>
+<div id="sync" role="status">
+</div>
+<dialog id="admin-login">
+<form id="admin-form">
+<h2>acces administrator</h2>
+<label>email<input id="admin-email" type="email" required autocomplete="username"></label>
+<label>parolă<input id="admin-password" type="password" required autocomplete="current-password"></label>
+<p role="alert" id="admin-error"></p>
+<button type="button" id="admin-cancel">anulează</button>
+<button type="submit" class="primary">confirmă</button>
+</form>
+</dialog>
+<script src="./events.js?v=5fb8187e41ab"></script>
+<script src="./firebase.js?v=a3df83ace7af"></script>
+<script src="./history.js?v=7b454b5fd09f"></script>
+<script src="./odds.js?v=0a66b0e7ae61"></script>
+<script src="./elo.js?v=10c78ef12f05"></script>
+<script src="./tournament.js?v=8daadea254ba"></script>
+<script src="./match.js?v=f585ccb89144"></script>
+<script src="./backup.js?v=00f0aadbfc6f"></script>
+<script src="./app.js?v=ac5b75401d37"></script>
+</body>
+</html>
