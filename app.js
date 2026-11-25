@@ -4,7 +4,7 @@ function el(tag,txt,cls,parent){let e=document.createElement(tag);if(txt!=null)e
 function button(txt,cls,parent,fn){let b=el('button',txt,cls,parent);b.onclick=fn;return b}
 
 const navigation = [
- ['t','tour','tt','turneu'],
+ ['t','tour','tt',''],
  ['e','eloview','te','elo'],
  ['h','historyview','th','history']
 ];
@@ -12,7 +12,7 @@ const base = document.querySelector('base');
 base.href = document.baseURI;
 function routeTab(){
  const path = location.pathname.replace(/\/index\.html$/, '/').replace(/\/$/, '');
- const route = navigation.find(([,,,slug]) => new URL(slug,base.href).pathname === path);
+ const route = navigation.find(([,,,slug]) => new URL(slug,base.href).pathname.replace(/\/$/, '') === path);
  return route ? route[0] : 't';
 }
 let tab = routeTab();
