@@ -1,6 +1,6 @@
 // ---- backup: validează înainte să schimbe ceva ----
 // Validate the complete candidate before restore can mutate or publish state.
-function validateBackup(d){
+function validateBackup(d,matches=new Map()){
  const obj=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
  const integer=x=>Number.isSafeInteger(x);
  const count=x=>integer(x)&&x>=0;
@@ -28,7 +28,7 @@ function validateBackup(d){
   check(obj(T.tb),'departajări invalide');
   for(const [gi,picks] of Object.entries(T.tb))check(/^(0|[1-9]\d*)$/.test(gi)&&T.groups[+gi]&&Array.isArray(picks)&&unique(picks)&&picks.every(n=>T.groups[+gi].includes(n)),'departajare invalidă');
  }
- const matches=new Map(),groupIds=[];
+ const groupIds=[];
  const add=(id,a,b,deps=[])=>{matches.set(id,{a,b,deps});const r=T.results[id];if(r){check(a&&b&&a!==b&&[a,b].includes(r.winner),'câștigător invalid: '+id);if(r.scores)check(r.winner===(r.scores[0]>r.scores[1]?a:b),'scorul nu corespunde câștigătorului: '+id)}return r?.winner};
  T.groups.forEach((g,gi)=>fx(g).forEach(([a,b],i)=>{const id='g'+gi+'-'+i;groupIds.push(id);add(id,a,b)}));
  if(T.pairs!=null){
@@ -59,12 +59,12 @@ function validateBackup(d){
  return d;
 }
 function bk(){const m=$('bm'),no=x=>{m.replaceChildren();el('p',x+' nu s-a schimbat nimic.','error',m)},str=x=>typeof x==='string'&&x.trim()!=='';
-$('bx').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({app:'raliu',v:1,saved:new Date().toISOString(),tournament:state,elo:E},null,1)],{type:'application/json'}));a.download='raliu-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)};
+$('bx').onclick=()=>journal.admin(()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({app:'raliu',v:1,saved:new Date().toISOString(),tournament:state,elo:E},null,1)],{type:'application/json'}));a.download='raliu-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)});
 $('bi').onclick=()=>$('bf').click();
 $('bf').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;let d;try{d=JSON.parse(await f.text())}catch{return no('fișierul nu e un JSON valid.')}
 try{validateBackup(d)}catch(err){return no('backup invalid: '+err.message+'.')}
 const T=d.tournament,L=d.elo;
 m.replaceChildren();const c=el('article',null,'',m);el('strong','backup din '+(d.saved?new Date(d.saved).toLocaleString('ro'):'dată necunoscută'),null,c);
 el('p',(T?'turneu: '+T.players.length+' jucători, '+Object.keys(T.results).length+' rezultate':'fără turneu activ')+' • elo: '+Object.keys(L.r).length+' jucători',null,c);
-el('p','⚠ restaurarea înlocuiește turneul și elo-ul de acum'+(firebaseSync.isConnected()?', iar schimbarea se trimite online și pentru ceilalți conectați.':' de pe acest telefon.'),'error',c);
-const r=el('div',null,'row',c);button('restaurează','primary',r,()=>{clearDrafts();state=T;E=L;save();esave();m.replaceChildren();el('p','restaurat ✓','badge',m);render();tabs()});button('anulează','',r,()=>m.replaceChildren())}}
+el('p','⚠ restaurarea înlocuiește turneul și elo-ul de acum'+', inclusiv pentru ceilalți conectați.','error',c);
+const r=el('div',null,'row',c);button('restaurează','primary',r,()=>journal.admin(async rev=>{if(await journal.send('restore',{app:'raliu',v:1,tournament:T,elo:L},rev)){clearDrafts();m.replaceChildren();el('p','restaurat ✓','badge',m)}}));button('anulează','',r,()=>m.replaceChildren())}}

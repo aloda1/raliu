@@ -1,77 +1,75 @@
-function createFirebaseSync({applyElo, applyTour, setSync}) {
-// Cloud Firestore stores the tournament and Elo in separate documents.
-let cloud=null;
-const pt={},bad={},pend={},ready=new Set();
-function upd(){
- if(!navigator.onLine)return setSync('offline');
- if(Object.keys(bad).length)return setSync('failed');
- if(Object.keys(pend).length)return setSync('saving');
- setSync(ready.size===2?'saved':'local');
-}
-
-// One in-flight write per document; retain an immutable snapshot of the latest queued save.
-const queues={};
-function push(path,get,t){
- if(!cloud){setSync('local');return}
- const q=queues[path]||(queues[path]={running:false,next:null});
- q.next={t,s:get()};pend[path]=1;setSync('saving');
- clearTimeout(pt[path]);pt[path]=setTimeout(()=>flush(path),500);
-}
-async function flush(path){
- const q=queues[path];if(!q||q.running||!q.next)return;
- q.running=true;
- try{
-  while(q.next){
-   const payload=q.next;q.next=null;
-   try{const r=await cloud.doc(path).set(payload);if(r&&r.ok===false)throw new Error('HTTP '+r.status);delete bad[path]}
-   catch{bad[path]=1}
+const adminUid='Skt2CDVH0UeOHGKub8Qe9wzSmoG3';
+const journal = (() => {
+  let api, authApi, auth, db, unsubscribe, revision=0, ready=false, busy=false, connecting=false;
+  function status(message) { $('sync').textContent=message; }
+  function refresh() { tabs(); }
+  async function start() {
+    if(connecting)return;
+    connecting=true; ready=false; unsubscribe?.();
+    try {
+      const base='https://www.gstatic.com/firebasejs/10.14.1/';
+      const [sdk,store,identity]=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-firestore.js'),import(base+'firebase-auth.js')]);
+      api=store;authApi=identity;
+      const app=sdk.getApps()[0]||sdk.initializeApp({projectId:'raliu-ae011',authDomain:'raliu-ae011.firebaseapp.com',apiKey:'AIzaSyDzskQc2sr-FoD45U9lZa3HX67vuVhUUbk'});
+      auth=identity.getAuth(app);db=store.getFirestore(app);
+      const [ratings,tour]=await Promise.all(['elo/ratings','tournament/current'].map(path=>store.getDocFromServer(store.doc(db,path))));
+      const baselineE=ratings.exists()?JSON.parse(ratings.data().s):{r:{},log:[]};
+      const baselineT=tour.exists()?JSON.parse(tour.data().s):null;
+      let first=true;
+      const stream=store.query(store.collection(db,'raliu_events'),store.orderBy('seq'));
+      unsubscribe=store.onSnapshot(stream,{includeMetadataChanges:true},snapshot=>{
+        if(snapshot.metadata.fromCache || snapshot.metadata.hasPendingWrites){ready=false;status('se sincronizează…');return}
+        if(first){E=baselineE;state=baselineT;if(state&&!state.tid)state.tid='legacy';prepareBracket();revision=0;first=false}
+        // Metadata-only acknowledgments can include documents skipped in a pending snapshot.
+        for(const change of snapshot.docs){
+          const event=change.data();if(event.seq<=revision)continue;
+          if(event.seq!==revision+1){ready=false;status('istoric incomplet • reîncarcă pagina');return}
+          try {applyEvent(event.kind,event.kind==='restore'?JSON.parse(event.payload):event.payload,event.time.toMillis(),change.id)} catch(error){console.warn('eveniment respins',change.id,error.message)}
+          revision=event.seq;
+        }
+        ready=true;
+        try{localStorage.setItem(key,JSON.stringify(state));localStorage.setItem(ek,JSON.stringify(E))}catch{}
+        refresh();status('salvat online ✓');
+      },error=>{ready=false;status('sincronizare oprită • '+error.code)});
+    } catch(error){status('conectare eșuată • '+(error.code||error.message))}
+    finally{connecting=false}
   }
- }finally{q.running=false;delete pend[path];upd()}
-}
-let connecting=false;
-const listeners=[];
-async function startFirebase(){
- if(connecting)return;
- connecting=true;
- try{
-  const base='https://www.gstatic.com/firebasejs/10.14.1/';
-  const [{initializeApp,getApps},{getFirestore,doc,onSnapshot,runTransaction}]=await Promise.all([
-   import(base+'firebase-app.js'),import(base+'firebase-firestore.js')
-  ]);
-  const app=getApps()[0]||initializeApp({
-   projectId:'raliu-ae011',authDomain:'raliu-ae011.firebaseapp.com',
-   apiKey:'AIzaSyDzskQc2sr-FoD45U9lZa3HX67vuVhUUbk'
-  });
-  const db=getFirestore(app);
-  cloud={doc:path=>({set:payload=>runTransaction(db,async tx=>{
-   const ref=doc(db,path),current=await tx.get(ref);
-   if(!current.exists()||current.data().t<payload.t)tx.set(ref,payload);
-  })})};
-  listeners.splice(0).forEach(stop=>stop());
-  ready.clear();
-  delete bad.connect;
-  for(const [path,apply] of [['elo/ratings',applyElo],['tournament/current',applyTour]]){
-   const ref=doc(db,path);
-   const stop=onSnapshot(ref,{includeMetadataChanges:true},snap=>{
-    if(snap.metadata.fromCache||snap.metadata.hasPendingWrites){ready.delete(path);upd();return}
-    delete bad[path];
-    ready.add(path);
-    const data=snap.exists()?snap.data():null;
-    try{
-     if(data){
-      if(!Number.isSafeInteger(data.t)||typeof data.s!=='string')throw Error('format invalid');
-      JSON.parse(data.s);
-     }
-     apply(data);
-    }catch{bad[path]=1}
-    upd();
-   },error=>{console.warn('firestore',path,error.code);bad[path]=1;ready.delete(path);upd()});
-   listeners.push(stop);
+  async function send(kind,payload,expected=revision) {
+    if(!ready||busy||!navigator.onLine){status('așteaptă sincronizarea înainte de a salva');return false}
+    busy=true;status('se salvează…');
+    try {
+      const ref=api.doc(api.collection(db,'raliu_events')),head=api.doc(db,'raliu_sync/head');
+      await api.runTransaction(db,async tx=>{
+        const current=await tx.get(head);
+        const seq=current.exists()?current.data().seq:0;
+        if(seq!==expected)throw Error('scorul s-a schimbat • verifică înainte să reîncerci');
+        tx.set(ref,{seq:seq+1,kind,payload:kind==='restore'?JSON.stringify(payload):payload,time:api.serverTimestamp()});
+        tx.set(head,{seq:seq+1,id:ref.id});
+      });
+      return true;
+    } catch(error){alert(error.message);status('acțiune nesalvată');return false}
+    finally{busy=false}
   }
- }catch(error){console.warn('firestore',error);bad.connect=1}
- finally{connecting=false;upd()}
-}
-window.addEventListener('online',startFirebase);
-window.addEventListener('offline',upd);
-return {push, start: startFirebase, isConnected: () => Boolean(cloud)};
-}
+  async function admin(task) {
+    if(!ready||!auth){status('așteaptă sincronizarea');return}
+    const expected=revision;
+    const dialog=$('admin-login'), form=$('admin-form');
+    if(dialog.open)return;
+    form.reset();$('admin-error').textContent='';
+    dialog.showModal();
+    form.onsubmit=async e=>{
+      e.preventDefault();const submit=form.querySelector('[type=submit]');submit.disabled=true;
+      try{
+        await authApi.setPersistence(auth,authApi.inMemoryPersistence);
+        const result=await authApi.signInWithEmailAndPassword(auth,$('admin-email').value.trim(),$('admin-password').value);
+        if(result.user.uid!==adminUid)throw Error('contul nu este administrator');
+        if(expected!==revision)throw Error('datele s-au schimbat • reîncearcă');
+        if(dialog.open){dialog.close();await task(expected)}
+      }catch(error){if(dialog.open)$('admin-error').textContent=error.code||error.message;else alert(error.message)}
+      finally{form.reset();submit.disabled=false;if(auth.currentUser)await authApi.signOut(auth)}
+    };
+  }
+  window.addEventListener('online',start);
+  window.addEventListener('offline',()=>{ready=false;status('fără internet • doar citire')});
+  return {start,send,admin};
+})();

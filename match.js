@@ -1,5 +1,5 @@
 function match(parent,a,b,id,label){let r=state.results[id],card=el('article',null,/^se joacă/.test(label)&&!r?'now':'',parent);el('small',label,'badge',card);
-function win(winner,scores){state.results[id]={winner,scores};state.history.push(id);elo(id,a,b,winner,scores);save();if(id[0]==='g'){think=+id.slice(1).split('-')[0];render();setTimeout(()=>{think=null;render()},1000)}else render()}
+function win(winner,scores){journal.send('score',{tid:state.tid,id,a,b,winner,scores})}
 if(r){el('p',a+' '+(r.scores?r.scores.join(' – '):' vs. ')+' '+b,null,card);el('strong','✓ '+r.winner,null,card)}
 else if(a&&b){
  const hint=el('p','apasă pe câștigător',null,card);

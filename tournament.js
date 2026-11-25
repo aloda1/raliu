@@ -4,10 +4,10 @@ function sizes(n){let g=Math.max(1,Math.floor(n/3)),base=Math.floor(n/g),extra=n
 function desc(n){let c={};sizes(n).forEach(k=>c[k]=(c[k]||0)+1);return Object.keys(c).sort((a,b)=>b-a).map(k=>c[k]+(c[k]===1?' grupă':' grupe')+' de '+k).join(' + ')}
 function count(){let n=entries().length;$('count').textContent=n+' jucători'+(n>1?' • '+desc(n):'');$('start').disabled=n<2}
 
-function shuffle(list){for(let i=list.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[list[i],list[j]]=[list[j],list[i]]}return list}
+function shuffle(list,random=Math.random){for(let i=list.length-1;i>0;i--){let j=Math.floor(random()*(i+1));[list[i],list[j]]=[list[j],list[i]]}return list}
 function split(players){let bag=shuffle(players.slice());return sizes(players.length).map(k=>bag.splice(0,k))}
 // tabloul eliminatoriu; încearcă să evite meciuri între jucători din aceeași grupă
-function seed(q){let size=2**Math.ceil(Math.log2(q.length)),best;for(let t=0;t<200;t++){let bag=shuffle(q.slice()),pairs=[];for(let i=0;i<size/2;i++)pairs.push([bag.pop(),i<size-q.length?null:bag.pop()]);best=pairs;if(pairs.every(([a,b])=>!b||a.g!==b.g))break}return shuffle(best).map(p=>p.map(x=>x&&x.n))}
+function seed(q,random=Math.random){let size=2**Math.ceil(Math.log2(q.length)),best;for(let t=0;t<200;t++){let bag=shuffle(q.slice(),random),pairs=[];for(let i=0;i<size/2;i++)pairs.push([bag.pop(),i<size-q.length?null:bag.pop()]);best=pairs;if(pairs.every(([a,b])=>!b||a.g!==b.g))break}return shuffle(best,random).map(p=>p.map(x=>x&&x.n))}
 let think=null;
 
 const letters=i=>String.fromCharCode(65+i);
@@ -42,14 +42,8 @@ function render(){
 }
 function render0(){let board=$('board');board.replaceChildren();$('setup').hidden=!!state;if(!state){count();return}
 let G=state.groups,nav=el('nav',null,'row',board);el('small',state.players.length+' participanți • '+G.length+(G.length===1?' grupă':' grupe'),null,nav);
-button('anulează ultimul rezultat','',nav,()=>{let id=state.history.pop();eloUndo(id);delete state.results[id];if(id[0]==='g'){state.pairs=null;if(state.tb)delete state.tb[+id.slice(1).split('-')[0]]}save();render()}).disabled=!state.history.length;
-let nb=button('turneu nou','',nav,()=>{if(state.history.length&&!nb.dataset.sure){nb.dataset.sure='1';nb.textContent='sigur? apasă din nou';setTimeout(()=>{nb.dataset.sure='';nb.textContent='turneu nou'},4000);return}let enriched=false;
-for(const entry of E.log){
- const scores=entry.t===state.tid&&state.results[entry.id]?.scores;
- if(scores&&entry.scores===undefined){entry.scores=scores;enriched=true}
-}
-if(enriched)esave();
-names.value=state.players.join('\n');state=null;think=null;save();$('error').textContent='';render()});
+button('anulează ultimul rezultat','',nav,()=>journal.send('undo',{tid:state.tid,id:state.history.at(-1)})).disabled=!state.history.length;
+let nb=button('turneu nou','',nav,()=>{if(state.history.length&&!nb.dataset.sure){nb.dataset.sure='1';nb.textContent='sigur? apasă din nou';setTimeout(()=>{nb.dataset.sure='';nb.textContent='turneu nou'},4000);return}names.value=state.players.join('\n');journal.send('end',{tid:state.tid})});
 const oddsSwitch=button('cote live','odds-switch',nav,()=>{
  showOdds=!showOdds;
  try{localStorage.setItem('raliu-odds',showOdds?'1':'0')}catch{}
@@ -65,7 +59,7 @@ let K=G.length===1?1:state.adv,gok=gi=>gfin(gi)&&!table(gi).tie,cur=G.findIndex(
 G.forEach((g,gi)=>{if(cur>=0&&gi>cur)return;let s=el('section',null,'',board),rows=table(gi);el('h2','grupa '+letters(gi),null,s);
 let t=el('table',null,'',s),h=el('tr',null,'',el('thead',null,'',t));['jucător','J','V','+/−'].forEach(x=>el('th',x,null,h));
 let tb=el('tbody',null,'',t);rows.forEach((r,i)=>{let tr=el('tr',null,gok(gi)&&G.length>1&&i<K?'winner':'',tb);el('td',r.n,null,tr);el('td',r.j,null,tr);el('td',r.w,null,tr);el('td',r.sc?(r.d>0?'+'+r.d:r.d):'–',null,tr)});
-if(gfin(gi)&&rows.tie){let c=el('article',null,'',s),T=rows.tie;el('small','egalitate','badge',c);el('p','egalitate perfectă între '+T.run.map(r=>r.n).join(', ')+' — alege cine ocupă locul '+T.slot+' în grupă:',null,c);T.run.forEach(r=>button(r.n,'player',c,()=>{state.tb=state.tb||{};state.tb[gi]=(state.tb[gi]||[]).concat(r.n);save();render()}))}
+if(gfin(gi)&&rows.tie){let c=el('article',null,'',s),T=rows.tie;el('small','egalitate','badge',c);el('p','egalitate perfectă între '+T.run.map(r=>r.n).join(', ')+' — alege cine ocupă locul '+T.slot+' în grupă:',null,c);T.run.forEach(r=>button(r.n,'player',c,()=>journal.send('tie',{tid:state.tid,group:gi,name:r.n})))}
 let seq=order(gi),p=seq.filter(m=>state.results[m.id]).length;
 if(p){let d=el('details',null,'',s);el('summary','meciuri jucate ('+p+')',null,d);seq.slice(0,p).forEach((m,k)=>match(d,m.a,m.b,m.id,'meci '+(k+1)))}
 if(p<seq.length){if(think===gi){let c=el('article',null,'think',s);el('small','meci '+(p+1),'badge',c);el('p','se alege următorul meci…',null,c)}
@@ -73,7 +67,7 @@ else{let m=seq[p],r=seq.length-p-1,h=showOdds?nextHint(seq,p):null;match(s,m.a,m
 if(cur>=0&&cur<G.length-1)el('small','grupa '+letters(cur+1)+' apare după ce se termină grupa '+letters(cur),null,board);
 if(!done)return;
 if(G.length===1){crown(board,table(0)[0].n);return}
-if(!state.pairs){state.pairs=seed(G.flatMap((g,gi)=>table(gi).slice(0,state.adv).map(r=>({n:r.n,g:gi}))));save()}
+if(!state.pairs)return;
 el('h3','faza eliminatorie',null,board);
 let pairs=state.pairs,round=0,block=false,nw=false;
 while(pairs.length){let next=[];let rd=el('details',null,'rh',board);rd.open=true;el('summary',pairs.length===1?'finală':pairs.length===2?'semifinale':pairs.length===4?'sferturi de finală':pairs.length===8?'optimi de finală':'turul '+(round+1),null,rd);

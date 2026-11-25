@@ -86,13 +86,24 @@
 </main>
 <div id="sync" role="status">
 </div>
-<script src="./firebase.js"></script>
+<dialog id="admin-login">
+<form id="admin-form">
+<h2>acces administrator</h2>
+<label>email<input id="admin-email" type="email" required autocomplete="username"></label>
+<label>parolă<input id="admin-password" type="password" required autocomplete="current-password"></label>
+<p role="alert" id="admin-error"></p>
+<button type="button" id="admin-cancel">anulează</button>
+<button type="submit" class="primary">confirmă</button>
+</form>
+</dialog>
+<script src="./events.js?v=5fb8187e41ab"></script>
+<script src="./firebase.js?v=a3df83ace7af"></script>
 <script src="./history.js?v=7b454b5fd09f"></script>
-<script src="./odds.js"></script>
-<script src="./elo.js"></script>
-<script src="./tournament.js"></script>
-<script src="./match.js"></script>
-<script src="./backup.js"></script>
-<script src="./app.js"></script>
+<script src="./odds.js?v=0a66b0e7ae61"></script>
+<script src="./elo.js?v=10c78ef12f05"></script>
+<script src="./tournament.js?v=8daadea254ba"></script>
+<script src="./match.js?v=f585ccb89144"></script>
+<script src="./backup.js?v=00f0aadbfc6f"></script>
+<script src="./app.js?v=d9883a1a722a"></script>
 </body>
 </html>
