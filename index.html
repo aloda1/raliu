@@ -6,7 +6,8 @@
 .odds-track::before{content:'';width:23px;height:23px;border-radius:50%;background:white;box-shadow:0 1px 3px #0003}
 .odds-switch[aria-checked="true"] .odds-track{background:#39814a}
 .odds-switch[aria-checked="true"] .odds-track::before{transform:translateX(19px)}
-</style><header><div class="inner"><div class="brand"><span class="logo">◉</span> raliu</div><div class="hero"><div><small>tenis de masă / eliminare directă</small><h1>turneu de<br>ping-pong.</h1></div><svg class="court" viewBox="0 0 150 120" aria-hidden="true"><g transform="rotate(-12 75 60)" stroke="#cbf865" fill="none" stroke-width="3"><rect x="12" y="23" width="126" height="75" rx="3"/><path d="M12 61h126M75 16v89"/><path stroke-dasharray="5 6" d="m32 77 66-39"/></g><circle cx="104" cy="30" r="9" fill="#ffab73"/></svg></div></div></header><main><nav class="tabs"><button id="tt" class="primary">turneu</button><button id="te">elo</button></nav><div id="tour"><section id="setup"><small>01 / înscrieri</small><h2>cine joacă?</h2><label for="names">scrie câte un nume pe fiecare rând.</label><textarea id="names" rows="6"></textarea><div><label for="adv">avansează din fiecare grupă: </label><select id="adv"><option value="2">primii 2</option><option value="1">doar primul</option></select></div><div class="row"><span id="count"></span><button class="primary" id="start">amestecă și începe ↗</button></div><div role="alert" id="error" class="error"></div></section><div id="board"></div></div><div id="eloview" hidden></div><section id="bk"><small>backup</small><h2>copie de siguranță</h2><p>salvează turneul și elo-ul într-un fișier sau restaurează dintr-un fișier.</p><div class="row"><button id="bx">descarcă backup</button><button id="bi">restaurează din fișier…</button></div><input type="file" id="bf" accept="application/json,.json" hidden><div id="bm" role="alert"></div></section></main><div id="sync" role="status"></div><script src="./firebase.js"></script>
+</style><header><div class="inner"><div class="brand"><span class="logo">◉</span> raliu</div><div class="hero"><div><small>tenis de masă / eliminare directă</small><h1>turneu de<br>ping-pong.</h1></div><svg class="court" viewBox="0 0 150 120" aria-hidden="true"><g transform="rotate(-12 75 60)" stroke="#cbf865" fill="none" stroke-width="3"><rect x="12" y="23" width="126" height="75" rx="3"/><path d="M12 61h126M75 16v89"/><path stroke-dasharray="5 6" d="m32 77 66-39"/></g><circle cx="104" cy="30" r="9" fill="#ffab73"/></svg></div></div></header><main><nav class="tabs"><button id="tt" class="primary">turneu</button><button id="te">elo</button><button id="th">istoric</button></nav><div id="tour"><section id="setup"><small>01 / înscrieri</small><h2>cine joacă?</h2><label for="names">scrie câte un nume pe fiecare rând.</label><textarea id="names" rows="6"></textarea><div><label for="adv">avansează din fiecare grupă: </label><select id="adv"><option value="2">primii 2</option><option value="1">doar primul</option></select></div><div class="row"><span id="count"></span><button class="primary" id="start">amestecă și începe ↗</button></div><div role="alert" id="error" class="error"></div></section><div id="board"></div></div><div id="eloview" hidden></div><div id="historyview" hidden></div><section id="bk"><small>backup</small><h2>copie de siguranță</h2><p>salvează turneul și elo-ul într-un fișier sau restaurează dintr-un fișier.</p><div class="row"><button id="bx">descarcă backup</button><button id="bi">restaurează din fișier…</button></div><input type="file" id="bf" accept="application/json,.json" hidden><div id="bm" role="alert"></div></section></main><div id="sync" role="status"></div><script src="./firebase.js"></script>
+<script src="./history.js"></script>
 <script src="./odds.js"></script>
 <script>
 const $=id=>document.getElementById(id),names=$('names'),key='raliu-tournament-v2';
@@ -29,7 +30,7 @@ const ek='raliu-elo-v1';let E={r:{},log:[]};try{E=JSON.parse(localStorage.getIte
 const esave=()=>{E.t=Math.max(Date.now(),(E.t||0)+1);if(E.log.length>300)E.log=E.log.slice(-300);try{localStorage.setItem(ek,JSON.stringify(E))}catch{}firebaseSync.push('elo/ratings',()=>JSON.stringify(E),E.t)};
 const nk=n=>Object.keys(E.r).find(k=>k.toLowerCase()===n.toLowerCase())||n;
 function elo(id,a,b,w,sc){state.tid=state.tid||Math.random().toString(36).slice(2);let P=n=>{n=nk(n);return E.r[n]||(E.r[n]={e:1000,g:0,w:0,c:0})},A=P(a),B=P(b),ea=1/(1+10**((B.e-A.e)/400)),win=w===a,d=sc?Math.min(Math.abs(sc[0]-sc[1]),11):0,k=32*(1+d/11),da=Math.round(k*((win?1:0)-ea)),db=-da;
-E.log.push({t:state.tid,id,a,b,w,da,db,pa:A.c,pb:B.c});A.e+=da;B.e+=db;A.g++;B.g++;(win?A:B).w++;A.c=da;B.c=db;esave()}
+E.log.push({t:state.tid,id,a,b,w,scores:sc,playedAt:Date.now(),da,db,pa:A.c,pb:B.c});A.e+=da;B.e+=db;A.g++;B.g++;(win?A:B).w++;A.c=da;B.c=db;esave()}
 function eloUndo(id){let i=E.log.map(x=>x.t===state.tid&&x.id===id).lastIndexOf(true);if(i<0)return;let x=E.log.splice(i,1)[0],A=E.r[nk(x.a)],B=E.r[nk(x.b)];if(A&&B){A.e-=x.da;B.e-=x.db;A.g--;B.g--;E.r[nk(x.w)].w--;A.c=x.pa;B.c=x.pb}esave()}
 function eloRender(){let v=$('eloview');v.replaceChildren();let s=el('section',null,'',v);el('small','clasament',null,s);el('h2','elo',null,s);el('p','toți încep de la 1000. o victorie la scor mare contează mai mult.',null,s);
 el('small','setează elo manual',null,s);el('p','pentru cei foarte buni, ex. 1300. dacă scrii din nou numele, elo-ul se schimbă.',null,s);
@@ -40,8 +41,19 @@ if(!rows.length){el('p','niciun meci încă. rezultatele din turneu apar aici.',
 let t=el('table',null,'',s),h=el('tr',null,'',el('thead',null,'',t));['jucător','elo','±','J','V'].forEach(x=>el('th',x,null,h));let tb=el('tbody',null,'',t);
 rows.forEach(([n,x],i)=>{let tr=el('tr',null,'',tb);let td=el('td',(i+1)+'. '+n,null,tr);button('×','',td,()=>{delete E.r[n];esave();eloRender()}).style.cssText='display:inline-block;width:auto;min-height:0;margin-left:8px;padding:0 8px';el('td',x.e,null,tr);el('td',x.c>0?'▲'+x.c:x.c<0?'▼'+(-x.c):'–',x.c>0?'up':x.c<0?'down':'',tr);el('td',x.g,null,tr);el('td',x.w,null,tr)});
 let rb=button('resetează elo','',s,()=>{if(!rb.dataset.sure){rb.dataset.sure='1';rb.textContent='sigur? apasă din nou';setTimeout(()=>{rb.dataset.sure='';rb.textContent='resetează elo'},4000);return}E={r:{},log:[]};esave();eloRender()})}
-let tab='t';function tabs(){$('tour').hidden=tab!=='t';$('eloview').hidden=tab!=='e';$('tt').className=tab==='t'?'primary':'';$('te').className=tab==='e'?'primary':'';if(tab==='e')eloRender();else render()}
-$('tt').onclick=()=>{tab='t';tabs()};$('te').onclick=()=>{tab='e';tabs()};
+let tab='t';
+function tabs(){
+ for(const [value,view,control] of [['t','tour','tt'],['e','eloview','te'],['h','historyview','th']]){
+  $(view).hidden=tab!==value;
+  $(control).className=tab===value?'primary':'';
+ }
+ if(tab==='e')eloRender();
+ else if(tab==='h')renderHistory($('historyview'),E.log,state);
+ else render();
+}
+for(const [id,value] of [['tt','t'],['te','e'],['th','h']]){
+ $(id).onclick=()=>{tab=value;tabs()};
+}
 const letters=i=>String.fromCharCode(65+i);
 const fx=g=>g.flatMap((a,i)=>g.slice(i+1).map(b=>[a,b]));
 const gdone=()=>state.groups.every((g,gi)=>fx(g).every((_,i)=>state.results['g'+gi+'-'+i]));
@@ -131,7 +143,13 @@ function render(){
 function render0(){let board=$('board');board.replaceChildren();$('setup').hidden=!!state;if(!state){count();return}
 let G=state.groups,nav=el('nav',null,'row',board);el('small',state.players.length+' participanți • '+G.length+(G.length===1?' grupă':' grupe'),null,nav);
 button('anulează ultimul rezultat','',nav,()=>{let id=state.history.pop();eloUndo(id);delete state.results[id];if(id[0]==='g'){state.pairs=null;if(state.tb)delete state.tb[+id.slice(1).split('-')[0]]}save();render()}).disabled=!state.history.length;
-let nb=button('turneu nou','',nav,()=>{if(state.history.length&&!nb.dataset.sure){nb.dataset.sure='1';nb.textContent='sigur? apasă din nou';setTimeout(()=>{nb.dataset.sure='';nb.textContent='turneu nou'},4000);return}names.value=state.players.join('\n');state=null;think=null;save();$('error').textContent='';render()});
+let nb=button('turneu nou','',nav,()=>{if(state.history.length&&!nb.dataset.sure){nb.dataset.sure='1';nb.textContent='sigur? apasă din nou';setTimeout(()=>{nb.dataset.sure='';nb.textContent='turneu nou'},4000);return}let enriched=false;
+for(const entry of E.log){
+ const scores=entry.t===state.tid&&state.results[entry.id]?.scores;
+ if(scores&&entry.scores===undefined){entry.scores=scores;enriched=true}
+}
+if(enriched)esave();
+names.value=state.players.join('\n');state=null;think=null;save();$('error').textContent='';render()});
 const oddsSwitch=button('cote live','odds-switch',nav,()=>{
  showOdds=!showOdds;
  try{localStorage.setItem('raliu-odds',showOdds?'1':'0')}catch{}
@@ -166,9 +184,9 @@ next.push(winner);if(pairs.length===1&&winner)crown(board,winner,winner===a?b:a)
 if(pairs.length===2&&!block&&!(round===0&&pairs.some(p=>p[1]===null))){let L=pairs.map(([a,b],i)=>{let r=state.results[round+'-'+i];return r.winner===a?b:a});el('h3','mica finală',null,board);match(board,L[0],L[1],'3rd',state.results['3rd']?'meci':'se joacă acum • mica finală');if(!state.results['3rd'])block=true}
 if(!block&&pairs.length>1)rd.open=false;if(block||next.length===1)break;pairs=[];for(let j=0;j<next.length;j+=2)pairs.push(next.slice(j,j+2));round++}}
 function setSync(s){const e=$('sync');e.replaceChildren();e.className=s;e.append({local:'salvat doar pe acest telefon',saving:'se salvează…',saved:'salvat online ✓',failed:'nu s-a salvat online',offline:'fără internet'}[s]);if(s==='failed'||s==='offline')button('reîncearcă','',e,firebaseSync.start)}
-const applyElo=d=>{if(d&&d.t>(E.t||0)){try{E=JSON.parse(d.s)}catch{return}E.t=d.t;try{localStorage.setItem(ek,d.s)}catch{}if(tab==='e')eloRender();else render()}
+const applyElo=d=>{if(d&&d.t>(E.t||0)){try{E=JSON.parse(d.s)}catch{return}E.t=d.t;try{localStorage.setItem(ek,d.s)}catch{}tabs()}
 else if((!d||d.t<(E.t||0))&&(E.t||Object.keys(E.r).length))firebaseSync.push('elo/ratings',()=>JSON.stringify(E),E.t||(E.t=Date.now()))};
-const applyTour=d=>{if(d&&d.t>ts){try{state=JSON.parse(d.s)}catch{return}ts=d.t;try{localStorage.setItem(key,d.s);localStorage.setItem(key+'-t',ts)}catch{}render()}
+const applyTour=d=>{if(d&&d.t>ts){try{state=JSON.parse(d.s)}catch{return}ts=d.t;try{localStorage.setItem(key,d.s);localStorage.setItem(key+'-t',ts)}catch{}render();if(tab==='h')renderHistory($('historyview'),E.log,state)}
 else if((!d||d.t<ts)&&(state||ts))firebaseSync.push('tournament/current',()=>JSON.stringify(state),ts||(ts=Date.now()))};
 const firebaseSync=createFirebaseSync({applyElo, applyTour, setSync});
 // ---- backup: validează înainte să schimbe ceva ----
