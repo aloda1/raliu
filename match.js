@@ -15,35 +15,27 @@ else if(a&&b){
  advantage.type='hidden';
  advantage.dataset.k=JSON.stringify([draftScope(),id,a,b,'advantage']);
  advantage.value=drafts[advantage.dataset.k]||'';
- // de la 10-10 incolo: la egalitate "punct X" da avantaj lui X;
- // cu avantaj raman doar "X" (castiga jocul, scor +2) si "egal" (revine la egalitate: 11-11, 12-12...).
- function drawPoints(side,x,y){
-  points.replaceChildren();
-  if(side===''){
-   [a,b].forEach((name,k)=>button('punct '+name,'',points,()=>{advantage.value=String(k);msg.textContent='';updateLive()}));
+ [a,b].forEach((name,k)=>button('punct '+name,'',points,()=>{
+  const side=String(k);
+  if(advantage.value===side){
+   const score=fields.map(f=>Number(f.value));
+   score[k]++;
+   win(name,score);
    return;
   }
-  const k=+side,name=k?b:a;
-  button(name,'',points,()=>{
-   const score=[x,y];
-   score[k]+=2;
-   win(name,score);
-  });
-  button('egal','',points,()=>{
-   fields[0].value=String(x+1);fields[1].value=String(y+1);
-   advantage.value='';msg.textContent='';updateLive();
-  });
- }
+  advantage.value=advantage.value===''?side:'';
+  msg.textContent='';
+  updateLive();
+ }));
  let msg=el('div','','error',det);msg.setAttribute('role','alert');
  function updateLive(){
   const values=fields.map(f=>f.value.trim());
   const valid=values.every(v=>v!==''&&Number.isSafeInteger(Number(v))&&Number(v)>=0);
   const [x,y]=values.map(Number);
-  const tied=valid&&x===y&&x>=10;
+  const tied=valid&&x===y&&x>0;
   advantagePanel.hidden=!tied;
   if(!tied)advantage.value='';
   const side=advantage.value;
-  if(tied)drawPoints(side,x,y);
   status.textContent=side===''?'egalitate • cine ia următorul punct?':'avantaj '+(side==='0'?a:b)+' • cine ia următorul punct?';
   if(!showOdds)return;
   const current=raliuOdds.calculate(a,b,E.r[nk(a)],E.r[nk(b)],valid?[x,y]:null,side);

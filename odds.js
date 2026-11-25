@@ -1,13 +1,12 @@
 const raliuOdds = (() => {
 function ratingChance(first, second) {
  if (!(first?.g || first?.s) || !(second?.g || second?.s)) return null;
- if (!Number.isFinite(first.e) || !Number.isFinite(second.e)) return null;
  return 1 / (1 + 10 ** ((second.e - first.e) / 400));
 }
 
 function formatOdds(probability, suffix = '') {
  const value = Math.min(250, .95 / probability);
- if (value < 1.001) return LOCKED;
+ if (value < 1.001) return '🔒 indisponibil';
  return value.toFixed(value < 1.01 ? 3 : 2) + suffix;
 }
 // probabilitate de a castiga un joc la 11, cu diferenta de doua puncte.
@@ -39,28 +38,14 @@ function pointChance(target) {
  return (low + high) / 2;
 }
 
-const LOCKED = '🔒 indisponibil';
-
-// joc terminat: cineva are minim 11 si diferenta de cel putin 2.
-function isFinished([x, y]) {
- return (x >= 11 || y >= 11) && Math.abs(x - y) >= 2;
-}
-
 function calculate(a, b, first, second, score, advantage) {
- // scor invalid sau joc deja terminat: nu mai primeste cote.
- if (score && (!score.every(n => Number.isInteger(n) && n >= 0) || isFinished(score))) {
-  return { a: LOCKED, b: LOCKED, fav: null };
- }
  const raw = ratingChance(first, second);
  const target = raw === null ? null : Math.max(.0038, Math.min(.9962, raw));
  let probability = target ?? .5;
  if (score) {
   let [x, y] = score;
-  // avantajul conteaza doar la egalitate de la 10-10 incolo (acolo orice avantaj = 11-10).
-  if (x >= 10 && y >= 10) {
-   if (advantage === '0') [x, y] = [11, 10];
-   if (advantage === '1') [x, y] = [10, 11];
-  }
+  if (advantage === '0') [x, y] = [11, 10];
+  if (advantage === '1') [x, y] = [10, 11];
   probability = pointGameProbability(x, y, pointChance(target));
  }
  const suffix = score ? 'x' : '';
