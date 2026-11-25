@@ -1,74 +1,86 @@
 const raliuOdds = (() => {
-function ratingChance(first, second) {
- if (!(first?.g || first?.s) || !(second?.g || second?.s)) return null;
- if (!Number.isFinite(first.e) || !Number.isFinite(second.e)) return null;
- return 1 / (1 + 10 ** ((second.e - first.e) / 400));
-}
-
-function formatOdds(probability, suffix = '') {
- const value = Math.min(250, .95 / probability);
- if (value < 1.001) return LOCKED;
- return value.toFixed(value < 1.01 ? 3 : 2) + suffix;
-}
-// probabilitate de a castiga un joc la 11, cu diferenta de doua puncte.
-// dupa 10-10, probabilitatea se calculeaza analitic (fara recursie infinita).
-function pointGameProbability(x,y,p){
- p=Math.max(.000001,Math.min(.999999,p));
- const q=1-p,deuce=p*p/(p*p+q*q),memo=new Map();
- function f(a,b){
-  if((a>=11||b>=11)&&Math.abs(a-b)>=2)return a>b?1:0;
-  if(a>=10&&b>=10){
-   if(a===b)return deuce;
-   if(a===b+1)return p+q*deuce;
-   if(b===a+1)return p*deuce;
+  const locked = '🔒 indisponibil';
+  function ratingChance(first, second) {
+    if (!(first?.g || first?.s) || !(second?.g || second?.s) ||
+        !Number.isFinite(first.e) || !Number.isFinite(second.e)) return null;
+    return 1 / (1 + 10 ** ((second.e - first.e) / 400));
   }
-  const k=a+','+b;if(memo.has(k))return memo.get(k);
-  const v=p*f(a+1,b)+q*f(a,b+1);memo.set(k,v);return v;
- }
- return f(x,y);
-}
-
-function pointChance(target) {
- if (target === null) return .5;
- let low = .000001, high = .999999;
- for (let i = 0; i < 30; i++) {
-  const mid = (low + high) / 2;
-  if (pointGameProbability(0, 0, mid) < target) low = mid;
-  else high = mid;
- }
- return (low + high) / 2;
-}
-
-const LOCKED = '🔒 indisponibil';
-
-// joc terminat: cineva are minim 11 si diferenta de cel putin 2.
-function isFinished([x, y]) {
- return (x >= 11 || y >= 11) && Math.abs(x - y) >= 2;
-}
-
-function calculate(a, b, first, second, score, advantage) {
- // scor invalid sau joc deja terminat: nu mai primeste cote.
- if (score && (!score.every(n => Number.isInteger(n) && n >= 0) || isFinished(score))) {
-  return { a: LOCKED, b: LOCKED, fav: null };
- }
- const raw = ratingChance(first, second);
- const target = raw === null ? null : Math.max(.0038, Math.min(.9962, raw));
- let probability = target ?? .5;
- if (score) {
-  let [x, y] = score;
-  // avantajul conteaza doar la egalitate de la 10-10 incolo (acolo orice avantaj = 11-10).
-  if (x >= 10 && y >= 10) {
-   if (advantage === '0') [x, y] = [11, 10];
-   if (advantage === '1') [x, y] = [10, 11];
+  function format(probability, suffix) {
+    const price = Math.min(250, .95 / probability);
+    return price < 1.001 ? locked : price.toFixed(price < 1.01 ? 3 : 2) + suffix;
   }
-  probability = pointGameProbability(x, y, pointChance(target));
- }
- const suffix = score ? 'x' : '';
- return {
-  a: formatOdds(probability, suffix),
-  b: formatOdds(1 - probability, suffix),
-  fav: Math.abs(probability - .5) < .02 ? null : probability > .5 ? a : b
- };
-}
-return { calculate, ratingChance };
+  function validTarget(n) { return Number.isSafeInteger(n) && n >= 2; }
+  function validScore(score) {
+    return Array.isArray(score) && score.length === 2 &&
+      score.every(n => Number.isSafeInteger(n) && n >= 0);
+  }
+  function finished([x,y], target) {
+    return Math.max(x,y) >= target && Math.abs(x-y) >= 2;
+  }
+  // Distribution of the next N rallies. At the end of those rallies a tie goes to deuce.
+  // Starting at the binomial mode avoids factorials, overflow and recursion.
+  function game(x, y, p, target) {
+    if (finished([x,y], target)) return Number(x > y);
+    const q = 1-p, deuce = p*p / (p*p + q*q), edge = target-1;
+    if (Math.min(x,y) >= edge) {
+      if (x === y) return deuce;
+      return x > y ? p + q*deuce : p*deuce;
+    }
+    const need = edge-x, n = need + (edge-y);
+    const mode = Math.floor((n+1)*p);
+    // For exceptionally long games use a normal approximation with continuity correction.
+    if (n*p*q > 1e6) {
+      const scale = Math.sqrt(n*p*q);
+      const tail = threshold => {
+        const z = (threshold - n*p)/scale;
+        const k = 1/(1+.2316419*Math.abs(z));
+        const small = Math.exp(-z*z/2)/Math.sqrt(2*Math.PI) * k *
+          (.31938153+k*(-.356563782+k*(1.781477937+k*(-1.821255978+k*1.330274429))));
+        return z >= 0 ? small : 1-small;
+      };
+      const above = tail(need+.5);
+      return above + deuce*(tail(need-.5)-above);
+    }
+    const outcome = k => k === need ? deuce : Number(k > need);
+    let total = 1, won = outcome(mode), weight = 1;
+    for (let k=mode; k>0; k--) {
+      weight *= k*q/((n-k+1)*p);
+      if (weight < 1e-18) break;
+      total += weight; won += weight*outcome(k-1);
+    }
+    weight=1;
+    for (let k=mode; k<n; k++) {
+      weight *= (n-k)*p/((k+1)*q);
+      if (weight < 1e-18) break;
+      total += weight; won += weight*outcome(k+1);
+    }
+    return Math.min(1,Math.max(0,won/total));
+  }
+  function calculate(a,b,first,second,score,advantage,target=11) {
+    const closed = {a:locked,b:locked,fav:null};
+    if (!validTarget(target) || (score != null && (!validScore(score) || finished(score,target)))) return closed;
+    const prior = Math.min(.9962,Math.max(.0038,ratingChance(first,second) ?? .5));
+    let probability = prior;
+    if (score && (score[0] || score[1])) {
+      let [x,y] = score;
+      if (x === y && x >= target-1) {
+        if (advantage === '0') x++;
+        if (advantage === '1') y++;
+      }
+      let p=.5;
+      if (prior !== .5) {
+        let low=0,high=1;
+        for(let i=0;i<48;i++){
+          const mid=(low+high)/2;
+          if(game(0,0,mid,target)<prior) low=mid; else high=mid;
+        }
+        p=(low+high)/2;
+      }
+      probability=game(x,y,p,target);
+    }
+    const suffix=score?'x':'';
+    return {a:format(probability,suffix),b:format(1-probability,suffix),
+      fav:Math.abs(probability-.5)<.02?null:probability>.5?a:b};
+  }
+  return {calculate,ratingChance,validScore,validTarget,finished};
 })();

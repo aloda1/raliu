@@ -1,0 +1,47 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function admin() {
+      return request.auth != null && request.auth.uid == 'Skt2CDVH0UeOHGKub8Qe9wzSmoG3';
+    }
+    match /elo/ratings { allow get: if true; }
+    match /tournament/current { allow get: if true; }
+    function head() { return /databases/$(database)/documents/raliu_sync/head; }
+    function next() { return exists(head()) ? get(head()).data.seq + 1 : 1; }
+    match /raliu_sync/head {
+      allow get: if true;
+      allow create, update: if request.resource.data.keys().hasOnly(['seq','id'])
+        && request.resource.data.seq is int && request.resource.data.seq == next()
+        && request.resource.data.id is string && request.resource.data.id.matches('[A-Za-z0-9]{20}')
+        && !exists(/databases/$(database)/documents/raliu_events/$(request.resource.data.id))
+        && getAfter(/databases/$(database)/documents/raliu_events/$(request.resource.data.id)).data.seq == next();
+    }
+    function publicAction(k,p) {
+      return p is map && (
+        (k == 'start' && p.keys().hasOnly(['players','sizes','adv','target']) && p.players is list && p.sizes is list
+          && (!('target' in p) || (p.target is int && p.target >= 2 && p.target <= 9007199254740991))
+          && p.sizes.size() > 0 && p.adv in [1,2])
+        || (p.keys().hasAll(['tid']) && p.tid is string && (
+          (k == 'end' && p.keys().hasOnly(['tid']))
+          || (k == 'undo' && p.keys().hasOnly(['tid','id']) && p.id is string)
+          || (k == 'tie' && p.keys().hasOnly(['tid','group','name']) && p.group is int && p.name is string)
+          || (k == 'score' && p.keys().hasOnly(['tid','id','a','b','winner','scores']) &&
+            p.id is string && p.a is string && p.b is string && p.a != p.b && p.winner in [p.a,p.b] &&
+            (p.scores == null || (p.scores is list && p.scores.size() == 2 &&
+             p.scores[0] is int && p.scores[1] is int && p.scores[0] >= 0 && p.scores[1] >= 0 &&
+             p.scores[0] != p.scores[1] && ((p.scores[0] > p.scores[1]) == (p.winner == p.a)))))
+        ))
+      );
+    }
+    match /raliu_events/{id} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasOnly(['seq','kind','payload','time'])
+        && request.resource.data.seq is int && request.resource.data.seq == next()
+        && getAfter(head()).data.id == id && getAfter(head()).data.seq == next()
+        && request.resource.data.time == request.time
+        && ((request.resource.data.kind in ['start','end','score','undo','tie']
+          && publicAction(request.resource.data.kind,request.resource.data.payload))
+          || (admin() && request.resource.data.kind in ['set','remove','reset','restore']));
+    }
+  }
+}

@@ -7,7 +7,8 @@
 <meta name="theme-color" content="#073d36">
 <title>raliu • turneu de ping-pong
 </title>
-<link rel="stylesheet" href="./styles.css?v=353c6ae6cab3">
+<script src="./theme.js?v=074736fde38b"></script>
+<link rel="stylesheet" href="./styles.css?v=e44011ef9642">
 </head>
 <body>
 <header>
@@ -46,6 +47,8 @@
 <textarea id="names" rows="6">
 </textarea>
 <div>
+<label for="target">primul la câte puncte?</label>
+<input id="target" type="number" min="2" step="1" value="11" required inputmode="numeric">
 <label for="adv">avansează din fiecare grupă: 
 </label>
 <select id="adv">
@@ -84,6 +87,9 @@
 <div id="bm" role="alert">
 </div>
 </section>
+<label class="theme-control">temă
+<select id="theme"><option value="system">sistem</option><option value="light">luminoasă</option><option value="dark">întunecată</option></select>
+</label>
 </main>
 <div id="sync" role="status">
 </div>
@@ -97,14 +103,14 @@
 <button type="submit" class="primary">confirmă</button>
 </form>
 </dialog>
-<script src="./events.js?v=5fb8187e41ab"></script>
+<script src="./events.js?v=2235a7707a73"></script>
 <script src="./firebase.js?v=a3df83ace7af"></script>
-<script src="./history.js?v=7b454b5fd09f"></script>
-<script src="./odds.js?v=f736da583270"></script>
-<script src="./elo.js?v=10c78ef12f05"></script>
-<script src="./tournament.js?v=8daadea254ba"></script>
-<script src="./match.js?v=93baa84875e3"></script>
-<script src="./backup.js?v=00f0aadbfc6f"></script>
-<script src="./app.js?v=b7948a4d9376"></script>
+<script src="./history.js?v=996d492422de"></script>
+<script src="./odds.js?v=22c3fe136fa1"></script>
+<script src="./elo.js?v=53e97d5ca2eb"></script>
+<script src="./tournament.js?v=324e85b7b9ca"></script>
+<script src="./match.js?v=7ab0acb25585"></script>
+<script src="./backup.js?v=d22f48eb4b1d"></script>
+<script src="./app.js?v=441b219b184c"></script>
 </body>
 </html>

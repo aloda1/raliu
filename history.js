@@ -31,6 +31,11 @@ function renderHeadToHead(section, log) {
     return select;
   });
 
+  const percentages=el('div',null,'h2h-percentages',section);
+  const labels=selects.map(()=>el('span',null,null,percentages));
+  const bar=el('div',null,'h2h-bar',section);
+  bar.setAttribute('aria-hidden','true');
+  const segments=selects.map(()=>el('i',null,null,bar));
   function update() {
     const wins = [0, 0];
     for (const match of log) {
@@ -40,6 +45,12 @@ function renderHeadToHead(section, log) {
       if (winner >= 0) wins[winner]++;
     }
     selects.forEach((select, index) => { select.value = historyPair[index]; });
+    const total=wins[0]+wins[1];
+    const left=total?Math.round(1000*wins[0]/total)/10:0;
+    [left,total?100-left:0].forEach((pct,k)=>{
+      segments[k].style.width=pct+'%';
+      labels[k].textContent=total?pct.toLocaleString('ro-RO',{maximumFractionDigits:1})+'%':(k?'':'niciun meci direct');
+    });
     score.textContent = wins.join(' – ');
     score.setAttribute('aria-label', names.get(historyPair[0]) + ': ' + wins[0] + ' victorii, ' +
       names.get(historyPair[1]) + ': ' + wins[1] + ' victorii');

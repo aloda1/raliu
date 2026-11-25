@@ -43,6 +43,8 @@ window.addEventListener('popstate',()=>{tab=routeTab();tabs()});
 names.oninput=count;
 
 $('start').onclick=()=>{let players=entries();if(new Set(players.map(x=>x.toLocaleLowerCase('ro'))).size!==players.length){$('error').textContent='două nume coincid. adaugă o inițială ca să distingi jucătorii.';return}if(!players.every(safePlayer)){ $('error').textContent='nume invalid';return }
-const groups=split(players);journal.send('start',{players:groups.flat(),sizes:groups.map(g=>g.length),adv:+$('adv').value})};
+const target=$('target').valueAsNumber;
+if(!raliuOdds.validTarget(target)){ $('target').reportValidity();return }
+const groups=split(players);journal.send('start',{players:groups.flat(),sizes:groups.map(g=>g.length),target,adv:+$('adv').value})};
 $('admin-cancel').onclick=()=>$('admin-login').close();
 bk();tabs();journal.start();

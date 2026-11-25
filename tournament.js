@@ -41,7 +41,7 @@ function render(){
  if(focused){const field=[...document.querySelectorAll('#board input[data-k]')].find(i=>i.dataset.k===focused);if(field)field.focus()}
 }
 function render0(){let board=$('board');board.replaceChildren();$('setup').hidden=!!state;if(!state){count();return}
-let G=state.groups,nav=el('nav',null,'row',board);el('small',state.players.length+' participanți • '+G.length+(G.length===1?' grupă':' grupe'),null,nav);
+let G=state.groups,nav=el('nav',null,'row',board);el('small',state.players.length+' participanți • primul la '+(state.target??11)+' • '+G.length+(G.length===1?' grupă':' grupe'),null,nav);
 button('anulează ultimul rezultat','',nav,()=>journal.send('undo',{tid:state.tid,id:state.history.at(-1)})).disabled=!state.history.length;
 let nb=button('turneu nou','',nav,()=>{if(state.history.length&&!nb.dataset.sure){nb.dataset.sure='1';nb.textContent='sigur? apasă din nou';setTimeout(()=>{nb.dataset.sure='';nb.textContent='turneu nou'},4000);return}names.value=state.players.join('\n');journal.send('end',{tid:state.tid})});
 const oddsSwitch=button('cote live','odds-switch',nav,()=>{

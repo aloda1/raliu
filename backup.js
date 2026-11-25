@@ -16,6 +16,7 @@ function validateBackup(d,matches=new Map()){
  for(const x of Object.values(L.r))check(obj(x)&&integer(x.e)&&count(x.g)&&count(x.w)&&x.w<=x.g&&integer(x.c)&&(x.s===undefined||x.s===1),'statistici elo invalide');
  for(const x of L.log)check(obj(x)&&name(x.t)&&typeof x.id==='string'&&/^(g\d+-\d+|\d+-\d+|3rd)$/.test(x.id)&&name(x.a)&&name(x.b)&&x.a!==x.b&&[x.a,x.b].includes(x.w)&&integer(x.da)&&integer(x.db)&&x.da===-x.db&&integer(x.pa)&&integer(x.pb),'istoric elo invalid');
  if(T===null)return d;
+ check(T.target===undefined || raliuOdds.validTarget(T.target),'țintă invalidă');
  check(obj(T)&&Array.isArray(T.players)&&T.players.length>=2&&T.players.every(name)&&unique(T.players.map(n=>n.toLocaleLowerCase('ro'))),'jucători invalizi');
  check([1,2].includes(T.adv)&&Array.isArray(T.groups)&&T.groups.length>0&&T.groups.every(g=>Array.isArray(g)&&g.length>=2&&g.every(n=>T.players.includes(n))),'grupe invalide');
  const members=T.groups.flat();check(unique(members)&&members.length===T.players.length,'grupele nu corespund jucătorilor');

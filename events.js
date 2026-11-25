@@ -22,7 +22,8 @@ function prepareBracket() {
 function applyEvent(kind, data, time, eventId) {
   if (!data || typeof data !== 'object') return false;
   if (kind === 'start') {
-    const {players,sizes,adv}=data;
+    const {players,sizes,adv,target=11}=data;
+    if (!raliuOdds.validTarget(target)) return false;
     if(state || !Array.isArray(players) || !Array.isArray(sizes) || !sizes.length ||
        !sizes.every(n=>Number.isSafeInteger(n) && n>=2) || sizes.reduce((a,b)=>a+b,0)!==players.length ||
        ![1,2].includes(adv) || !players.every(safePlayer) ||
@@ -30,6 +31,7 @@ function applyEvent(kind, data, time, eventId) {
     let offset=0;
     const groups=sizes.map(n=>{const group=players.slice(offset,offset+n);offset+=n;return group});
     state = {tid:eventId,players,groups,adv,results:{},history:[],pairs:null};
+    if(data.target!==undefined)state.target=target;
   } else if (kind === 'restore') {
     validateBackup(data);
     state=data.tournament; E=data.elo;
@@ -65,6 +67,7 @@ function applyEvent(kind, data, time, eventId) {
       const sc=data.scores;
       if (sc!==null && !(Array.isArray(sc) && sc.length===2 && sc.every(n=>Number.isSafeInteger(n)&&n>=0)
           && sc[0]!==sc[1] && (sc[0]>sc[1]?data.a:data.b)===data.winner)) return false;
+      if(sc && state.target!==undefined && !raliuOdds.finished(sc,state.target))return false;
       const matches=new Map();
       validateBackup({app:'raliu',v:1,tournament:state,elo:E},matches);
       const m=matches.get(data.id);

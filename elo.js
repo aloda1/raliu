@@ -1,7 +1,7 @@
 // ---- elo (separat de turneu, rămâne salvat în browser) ----
 const ek='raliu-elo-v1';let E={r:{},log:[]};try{E=JSON.parse(localStorage.getItem(ek))||E}catch{}
 const nk=n=>Object.keys(E.r).find(k=>k.toLowerCase()===n.toLowerCase())||n;
-function elo(id,a,b,w,sc,time){state.tid=state.tid||Math.random().toString(36).slice(2);let P=n=>{n=nk(n);return E.r[n]||(E.r[n]={e:1000,g:0,w:0,c:0})},A=P(a),B=P(b),ea=1/(1+10**((B.e-A.e)/400)),win=w===a,d=sc?Math.min(Math.abs(sc[0]-sc[1]),11):0,k=32*(1+d/11),da=Math.round(k*((win?1:0)-ea)),db=-da;
+function elo(id,a,b,w,sc,time){state.tid=state.tid||Math.random().toString(36).slice(2);let P=n=>{n=nk(n);return E.r[n]||(E.r[n]={e:1000,g:0,w:0,c:0})},A=P(a),B=P(b),ea=1/(1+10**((B.e-A.e)/400)),win=w===a,target=state.target??11,d=sc?Math.min(Math.abs(sc[0]-sc[1]),target):0,k=32*(1+d/target),da=Math.round(k*((win?1:0)-ea)),db=-da;
 E.log.push({t:state.tid,id,a,b,w,scores:sc,playedAt:time,da,db,pa:A.c,pb:B.c});A.e+=da;B.e+=db;A.g++;B.g++;(win?A:B).w++;A.c=da;B.c=db}
 function eloUndo(id){let i=E.log.map(x=>x.t===state.tid&&x.id===id).lastIndexOf(true);if(i<0)return;let x=E.log.splice(i,1)[0],A=E.r[nk(x.a)],B=E.r[nk(x.b)];if(A&&B){A.e-=x.da;B.e-=x.db;A.g--;B.g--;E.r[nk(x.w)].w--;A.c=x.pa;B.c=x.pb}}
 function eloRender(){let v=$('eloview');v.replaceChildren();let s=el('section',null,'',v);el('small','clasament',null,s);el('h2','elo',null,s);el('p','toți încep de la 1000. o victorie la scor mare contează mai mult.',null,s);
