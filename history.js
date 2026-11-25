@@ -1,31 +1,31 @@
-let historyPair = [];
+let historyPair = ['', ''];
+let historyLimit = 5;
 const historyName = name => name.trim().toLocaleLowerCase('ro');
 
-function renderHeadToHead(section, log) {
+function renderHeadToHead(section, log, tournament) {
   const names = new Map();
   for (const match of log) {
     for (const name of [match.a, match.b]) names.set(historyName(name), name);
   }
-  const latest = log[log.length - 1];
-  if (historyPair.length !== 2 || !historyPair.every(key => names.has(key))) {
-    historyPair = [historyName(latest.a), historyName(latest.b)];
-  }
+  historyPair = historyPair.map(key => names.has(key) ? key : '');
 
   el('h3', 'meciuri directe', null, section);
   const row = el('div', null, 'head-to-head', section);
-  const score = el('strong', null, 'head-score');
+  const score = el('strong', 'vs.', 'head-score');
   score.setAttribute('aria-live', 'polite');
   const choices = [...names].sort((a, b) => a[1].localeCompare(b[1], 'ro'));
   const selects = historyPair.map((key, index) => {
     if (index === 1) row.append(score);
     const select = el('select', null, null, row);
     select.setAttribute('aria-label', index ? 'al doilea jucător' : 'primul jucător');
+    el('option', '-neselectat-', null, select).value = '';
     for (const [value, label] of choices) el('option', label, null, select).value = value;
     select.value = key;
     select.onchange = () => {
       const other = 1 - index;
-      if (select.value === historyPair[other]) historyPair[other] = historyPair[index];
+      if (select.value && select.value === historyPair[other]) historyPair[other] = historyPair[index];
       historyPair[index] = select.value;
+      historyLimit = 5;
       update();
     };
     return select;
@@ -38,14 +38,46 @@ function renderHeadToHead(section, log) {
   const empty = el('span', 'niciun meci direct', 'h2h-empty', panel);
   const legend = el('div', null, 'h2h-legend', panel);
   const labels = selects.map(() => el('span', null, null, legend));
+  const list = el('div', null, 'result-list', section);
+  const more = button('arată mai mult', 'history-more', section, () => {
+    historyLimit += 10;
+    update();
+  });
+  const dates = new Intl.DateTimeFormat('ro-RO', {dateStyle:'short', timeStyle:'short'});
   function update() {
     const wins = [0, 0];
-    for (const match of log) {
-      const a = historyName(match.a), b = historyName(match.b);
-      if (a === b || !historyPair.includes(a) || !historyPair.includes(b)) continue;
-      const winner = historyPair.indexOf(historyName(match.w));
-      if (winner >= 0) wins[winner]++;
+    const selected = historyPair.filter(Boolean);
+    const direct = selected.length === 2;
+    const matches = log.filter(match => {
+      const players = [historyName(match.a), historyName(match.b)];
+      return selected.every(key => players.includes(key));
+    }).reverse();
+    for (const match of matches) {
+      const side = historyPair.indexOf(historyName(match.w));
+      if (side >= 0) wins[side]++;
     }
+    panel.hidden = !direct;
+    list.replaceChildren();
+    for (const match of matches.slice(0,historyLimit)) {
+      const row = el('div',null,'result-line',list);
+      const date = new Date(match.playedAt);
+      const dated = Number.isSafeInteger(match.playedAt) && Number.isFinite(date.getTime());
+      el('time',dated ? dates.format(date) : '—',null,row);
+      const winner = historyName(match.w);
+      const pairing = el('span',null,'result-pair',row);
+      for (const [i,name] of [match.a,match.b].entries()) {
+        if(i) pairing.append(' – ');
+        el(historyName(name)===winner?'strong':'span',name,null,pairing);
+      }
+      const active = match.t === tournament?.tid ? tournament?.results?.[match.id] : null;
+      const scores = match.scores ?? active?.scores;
+      const result = el('span',Array.isArray(scores)?scores.join(' – '):'✓ '+match.w,'result-score',row);
+      result.setAttribute('aria-label',result.textContent+' • câștigător: '+match.w);
+      result.title='câștigător: '+match.w;
+      const side=historyPair.indexOf(winner);
+      if(direct) result.dataset.side=String(side);
+    }
+    more.hidden = matches.length <= historyLimit;
     selects.forEach((select, index) => { select.value = historyPair[index]; });
     const total=wins[0]+wins[1];
     empty.hidden = total > 0;
@@ -58,9 +90,9 @@ function renderHeadToHead(section, log) {
       labels[k].textContent = names.get(historyPair[k]) + ' · ' +
         percent.toLocaleString('ro-RO', {maximumFractionDigits: 1}) + '%';
     });
-    score.textContent = wins.join(' – ');
-    score.setAttribute('aria-label', names.get(historyPair[0]) + ': ' + wins[0] + ' victorii, ' +
-      names.get(historyPair[1]) + ': ' + wins[1] + ' victorii');
+    score.textContent = direct ? wins.join(' – ') : 'vs.';
+    score.setAttribute('aria-label', direct ? names.get(historyPair[0])+': '+wins[0]+' victorii, '+
+      names.get(historyPair[1])+': '+wins[1]+' victorii' : 'versus');
   }
   update();
 }
@@ -74,18 +106,5 @@ function renderHistory(view, log, tournament) {
     return;
   }
 
-  renderHeadToHead(section, log);
-  const dates = new Intl.DateTimeFormat('ro-RO', { dateStyle: 'short', timeStyle: 'short' });
-  for (const match of log.slice().reverse()) {
-    const card = el('article', null, '', section);
-    const activeResult = match.t === tournament?.tid ? tournament.results[match.id] : null;
-    const scores = match.scores ?? activeResult?.scores;
-    const score = Array.isArray(scores) && scores.length === 2 ? scores.join(' – ') : 'vs.';
-    el('strong', match.a + '  ' + score + '  ' + match.b, null, card);
-    el('div', '✓ ' + match.w, null, card);
-    const date = new Date(match.playedAt);
-    if (Number.isSafeInteger(match.playedAt) && Number.isFinite(date.getTime())) {
-      el('small', dates.format(date), null, card);
-    }
-  }
+  renderHeadToHead(section, log, tournament);
 }

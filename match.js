@@ -5,7 +5,8 @@ else if(a&&b){
  const target=state.target??11;
  const players=[a,b];
  const hint=el('p','apasă pe câștigător',null,card);
- const buttons=players.map(name=>button(name,'player',card,()=>win(name,null)));
+ const playerRow=el('div',null,'match-players',card);
+ const buttons=players.map(name=>button(name,'player',playerRow,()=>win(name,null)));
  const det=el('div',null,null,card);
  const scoreLabel=el('small','sau introdu scorul','badge',det);
  const form=el('form',null,'scores',det);
@@ -56,6 +57,7 @@ else if(a&&b){
   const token=advantage.value.split(':');
   if(!tied||token[0]!==String(score[0])||!['0','1'].includes(token[1]))advantage.value='';
   const side=advantage.value?token[1]:'',hasAdvantage=side!=='';
+  playerRow.classList.toggle('deuce-players',tied);
   panel.hidden=!tied;
   scoreLabel.hidden=form.hidden=hasAdvantage;
   const controls=[left,right];
@@ -70,6 +72,13 @@ else if(a&&b){
   const odds=showOdds?raliuOdds.calculate(a,b,E.r[nk(a)],E.r[nk(b)],empty?null:score,side,target):null;
   buttons.forEach((btn,k)=>{
    btn.disabled=!empty;
+   if(tied){
+    btn.replaceChildren();
+    el('strong',players[k],null,btn);
+    if(hasAdvantage)el('span',side===String(k)?'AD':'','adv-mark',btn);
+    if(odds)el('span',(k?odds.b:odds.a)+(odds.fav===players[k]?' ⭐':''),'deuce-price',btn);
+    return;
+   }
    btn.textContent=players[k]+(side===String(k)?' · AD':'')+(odds?' • '+(k?odds.b:odds.a)+(odds.fav===players[k]?' ⭐':''):'');
   });
   msg.textContent=(!empty&&!valid&&fields.every(f=>f.value||f.validity.badInput))?'introdu puncte întregi, de la zero.':'';

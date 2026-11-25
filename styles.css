@@ -111,3 +111,16 @@ input,textarea,select,dialog{color:var(--ink);background:var(--field)}
 .primary,.tabs a.primary{color:#123c33}
 dialog{border:1px solid var(--border);border-radius:12px}
 #sync.failed,#sync.offline{background:#852f21}
+
+.result-line{display:grid;grid-template-columns:minmax(6rem,auto) minmax(0,1fr) auto;align-items:center;gap:.8rem;padding:.65rem .3rem;border-bottom:1px solid var(--line)}
+.result-line time{color:var(--muted);font-size:.78rem}
+.result-pair,.result-score{overflow-wrap:anywhere}
+.result-score{font-variant-numeric:tabular-nums;text-align:right}
+.result-score[data-side]::after{content:'';display:inline-block;width:.5rem;height:.5rem;border-radius:50%;margin-left:.4rem;background:var(--bar-a)}
+.result-score[data-side="1"]::after{background:var(--bar-b)}
+.history-more{display:block;margin:.7rem auto 0}
+.deuce-players{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+.deuce-players .player{display:grid;justify-items:center;align-content:start;gap:.2rem;text-align:center;background:transparent;border:0;min-width:0}
+.adv-mark{font-size:1.4rem;min-height:1.6rem;font-weight:750}
+.deuce-price{font-size:.87rem;color:var(--muted)}
+@media(max-width:520px){.result-line{grid-template-columns:minmax(0,1fr) auto;gap:.15rem .6rem}.result-line time{grid-column:1/-1}}
