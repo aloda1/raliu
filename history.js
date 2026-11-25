@@ -64,18 +64,28 @@ function renderHeadToHead(section, log, tournament) {
       const dated = Number.isSafeInteger(match.playedAt) && Number.isFinite(date.getTime());
       el('time',dated ? dates.format(date) : '—',null,row);
       const winner = historyName(match.w);
-      const pairing = el('span',null,'result-pair',row);
-      for (const [i,name] of [match.a,match.b].entries()) {
-        if(i) pairing.append(' – ');
-        el(historyName(name)===winner?'strong':'span',name,null,pairing);
-      }
       const active = match.t === tournament?.tid ? tournament?.results?.[match.id] : null;
       const scores = match.scores ?? active?.scores;
-      const result = el('span',Array.isArray(scores)?scores.join(' – '):'✓ '+match.w,'result-score',row);
-      result.setAttribute('aria-label',result.textContent+' • câștigător: '+match.w);
-      result.title='câștigător: '+match.w;
+      const hasScore = Array.isArray(scores) && scores.length === 2;
+      const pairing = el('span',null,'result-pair',row);
+      pairing.title='câștigător: '+match.w;
+      for (const [i,name] of [match.a,match.b].entries()) {
+        const won=historyName(name)===winner;
+        if(i) {
+          pairing.append(' ');
+          el('span',hasScore?scores.join('–'):'–','result-score',pairing);
+          pairing.append(' ');
+        }
+        const player=el(won?'strong':'span',name,null,pairing);
+        if(won&&!hasScore) {
+          const mark=el('span','✓','result-check');
+          mark.setAttribute('aria-label','câștigător');
+          if(i) player.append(' ',mark);
+          else player.prepend(mark,' ');
+        }
+      }
       const side=historyPair.indexOf(winner);
-      if(direct) result.dataset.side=String(side);
+      if(direct&&side>=0) pairing.dataset.side=String(side);
     }
     more.hidden = matches.length <= historyLimit;
     selects.forEach((select, index) => { select.value = historyPair[index]; });
