@@ -7,13 +7,27 @@
 <meta name="theme-color" content="#073d36">
 <title>raliu • turneu de ping-pong
 </title>
-<script src="./theme.js?v=074736fde38b"></script>
-<link rel="stylesheet" href="./styles.css?v=0cae634a1e13">
+<script src="./theme.js?v=header-theme-v1"></script>
+<link rel="stylesheet" href="./styles.css?v=header-theme-v1">
 </head>
 <body>
 <header>
 <div class="inner">
+<div class="header-top">
 <div class="brand"><span class="logo">◉</span> raliu
+</div>
+<div class="theme-control" id="theme-control">
+<button type="button" id="theme-toggle" class="theme-toggle" aria-label="schimbă tema" aria-expanded="false" aria-controls="theme-menu">
+<svg class="theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4m0-14.2-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>
+<svg class="theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M20.9 13.4A9 9 0 0 1 10.6 3.1 9 9 0 1 0 20.9 13.4Z"/></svg>
+<svg class="theme-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
+</button>
+<div class="theme-menu" id="theme-menu" role="group" aria-label="temă" hidden>
+<button type="button" data-theme-value="system" aria-pressed="false">sistem</button>
+<button type="button" data-theme-value="light" aria-pressed="false">luminoasă</button>
+<button type="button" data-theme-value="dark" aria-pressed="false">întunecată</button>
+</div>
+</div>
 </div>
 <div class="hero">
 <div>
@@ -87,9 +101,7 @@
 <div id="bm" role="alert">
 </div>
 </section>
-<label class="theme-control">temă
-<select id="theme"><option value="system">sistem</option><option value="light">luminoasă</option><option value="dark">întunecată</option></select>
-</label>
+
 </main>
 <div id="sync" role="status">
 </div>
