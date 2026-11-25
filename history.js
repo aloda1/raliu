@@ -31,11 +31,13 @@ function renderHeadToHead(section, log) {
     return select;
   });
 
-  const percentages=el('div',null,'h2h-percentages',section);
-  const labels=selects.map(()=>el('span',null,null,percentages));
-  const bar=el('div',null,'h2h-bar',section);
-  bar.setAttribute('aria-hidden','true');
-  const segments=selects.map(()=>el('i',null,null,bar));
+  const panel = el('div', null, 'h2h-panel', section);
+  const bar = el('div', null, 'h2h-bar', panel);
+  bar.setAttribute('aria-hidden', 'true');
+  const segments = selects.map(() => el('strong', null, null, bar));
+  const empty = el('span', 'niciun meci direct', 'h2h-empty', panel);
+  const legend = el('div', null, 'h2h-legend', panel);
+  const labels = selects.map(() => el('span', null, null, legend));
   function update() {
     const wins = [0, 0];
     for (const match of log) {
@@ -46,10 +48,15 @@ function renderHeadToHead(section, log) {
     }
     selects.forEach((select, index) => { select.value = historyPair[index]; });
     const total=wins[0]+wins[1];
-    const left=total?Math.round(1000*wins[0]/total)/10:0;
-    [left,total?100-left:0].forEach((pct,k)=>{
-      segments[k].style.width=pct+'%';
-      labels[k].textContent=total?pct.toLocaleString('ro-RO',{maximumFractionDigits:1})+'%':(k?'':'niciun meci direct');
+    empty.hidden = total > 0;
+    bar.hidden = legend.hidden = total === 0;
+    wins.forEach((count, k) => {
+      segments[k].hidden = count === 0;
+      segments[k].style.flexGrow = count;
+      segments[k].textContent = count;
+      const percent = total ? 100 * count / total : 0;
+      labels[k].textContent = names.get(historyPair[k]) + ' · ' +
+        percent.toLocaleString('ro-RO', {maximumFractionDigits: 1}) + '%';
     });
     score.textContent = wins.join(' – ');
     score.setAttribute('aria-label', names.get(historyPair[0]) + ': ' + wins[0] + ' victorii, ' +
