@@ -1,0 +1,64 @@
+*{box-sizing:border-box}
+body{margin:0;background:#f2f3e9;color:#123c33;font:16px system-ui,sans-serif}
+header{background:#073d36;color:#f2f3e9;border-bottom:5px solid #c8f661}
+main,.inner{max-width:850px;margin:auto;padding:24px}
+.brand{font-weight:900;font-size:22px;letter-spacing:-1px}
+.logo{color:#c8f661}
+.hero{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:32px 0 6px}
+small{font:700 11px ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase}
+h1{font-size:clamp(40px,8vw,76px);letter-spacing:-.07em;line-height:.98;margin:10px 0}
+.court{width:25%;max-width:175px;flex:none}
+section,article{background:#fffef6;border:1px solid #ced7c7;border-radius:16px;padding:20px;margin:12px 0}
+h2{margin:0 0 8px;letter-spacing:-.04em}
+p{line-height:1.5;margin:7px 0 16px}
+textarea,input,button{font:inherit}
+textarea{width:100%;margin:8px 0;padding:14px;border-radius:10px;border:1px solid #9aaa9b;resize:vertical;background:#fafbf4}
+button{cursor:pointer;min-height:46px;padding:10px 16px;border:1px solid #afbdad;border-radius:9px;background:white;color:#123c33;font-weight:650}
+.primary{background:#c8f661;border-color:#99bb54}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+button:disabled{opacity:.45}
+.player{width:100%;text-align:left;margin:4px 0;overflow-wrap:anywhere}
+.player:after{content:'→';float:right}
+details{margin-top:9px}
+summary{cursor:pointer;padding:10px 0}
+.scores{display:flex;gap:8px;flex-wrap:wrap}
+.scores label{flex:1;min-width:80px;overflow-wrap:anywhere}
+input{display:block;width:100%;padding:10px;margin:5px 0;border:1px solid #aab9aa;border-radius:7px}
+.scores button{align-self:end}
+.badge{color:#56745e}
+.error{color:#a02f12}
+.winner{background:#d9f7a9}
+article{overflow-wrap:anywhere}
+nav{margin:16px 0}
+h3{margin:28px 0 4px}
+ table{width:100%;border-collapse:collapse;margin:6px 0 12px}
+th,td{padding:6px 4px;text-align:center;border-bottom:1px solid #e3e8dc}
+th:first-child,td:first-child{text-align:left;overflow-wrap:anywhere}
+th{font:700 11px ui-monospace,monospace;text-transform:uppercase}
+select{font:inherit;padding:8px;border-radius:8px;border:1px solid #aab9aa;background:white;margin:0 0 12px}
+section article{background:#f7f8ee}
+.think p{animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.3}
+}
+.tabs{display:flex;gap:8px;margin:0 0 4px}
+.tabs button{flex:1}
+.up{color:#2f7a3e}
+.down{color:#a02f12}
+[hidden]{display:none!important}
+.now{border:2px solid #99bb54;background:#f1fbd7!important}
+#sync{position:fixed;right:10px;bottom:10px;z-index:9;padding:7px 12px;border-radius:99px;background:#073d36;color:#f2f3e9;font:700 12px ui-monospace,monospace}
+#sync.failed,#sync.offline{background:#a02f12}
+#sync button{min-height:0;padding:2px 8px;margin-left:6px;font-size:12px}
+.rh>summary{font-size:20px;font-weight:800;letter-spacing:-.03em}
+details>summary{font-weight:650}
+
+
+.odds-switch{display:inline-flex;align-items:center;justify-content:space-between;gap:12px;border:0;background:transparent}
+
+.odds-track{display:inline-flex;align-items:center;width:48px;height:29px;padding:3px;border-radius:20px;background:#696b70}
+
+.odds-track::before{content:'';width:23px;height:23px;border-radius:50%;background:white;box-shadow:0 1px 3px #0003}
+
+.odds-switch[aria-checked="true"] .odds-track{background:#39814a}
+
+.odds-switch[aria-checked="true"] .odds-track::before{transform:translateX(19px)}
