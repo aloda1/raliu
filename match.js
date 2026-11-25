@@ -45,7 +45,6 @@ else if(a&&b){
  const equal=button('egal','',points,()=>{
   const score=read();
   if(!isDeuce(score)||!advantage.value)return;
-  fields.forEach(f=>f.value=String(score[0]+1));
   advantage.value='';
   update();
  });
