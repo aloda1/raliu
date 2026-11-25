@@ -1,5 +1,11 @@
 <!doctype html><html lang="ro"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#073d36"><title>raliu • turneu de ping-pong</title><style>
-*{box-sizing:border-box}body{margin:0;background:#f2f3e9;color:#123c33;font:16px system-ui,sans-serif}header{background:#073d36;color:#f2f3e9;border-bottom:5px solid #c8f661}main,.inner{max-width:850px;margin:auto;padding:24px}.brand{font-weight:900;font-size:22px;letter-spacing:-1px}.logo{color:#c8f661}.hero{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:32px 0 6px}small{font:700 11px ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase}h1{font-size:clamp(40px,8vw,76px);letter-spacing:-.07em;line-height:.98;margin:10px 0}.court{width:25%;max-width:175px;flex:none}section,article{background:#fffef6;border:1px solid #ced7c7;border-radius:16px;padding:20px;margin:12px 0}h2{margin:0 0 8px;letter-spacing:-.04em}p{line-height:1.5;margin:7px 0 16px}textarea,input,button{font:inherit}textarea{width:100%;margin:8px 0;padding:14px;border-radius:10px;border:1px solid #9aaa9b;resize:vertical;background:#fafbf4}button{cursor:pointer;min-height:46px;padding:10px 16px;border:1px solid #afbdad;border-radius:9px;background:white;color:#123c33;font-weight:650}.primary{background:#c8f661;border-color:#99bb54}.row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}button:disabled{opacity:.45}.player{width:100%;text-align:left;margin:4px 0;overflow-wrap:anywhere}.player:after{content:'→';float:right}details{margin-top:9px}summary{cursor:pointer;padding:10px 0}.scores{display:flex;gap:8px;flex-wrap:wrap}.scores label{flex:1;min-width:80px;overflow-wrap:anywhere}input{display:block;width:100%;padding:10px;margin:5px 0;border:1px solid #aab9aa;border-radius:7px}.scores button{align-self:end}.badge{color:#56745e}.error{color:#a02f12}.winner{background:#d9f7a9}article{overflow-wrap:anywhere}nav{margin:16px 0}h3{margin:28px 0 4px} table{width:100%;border-collapse:collapse;margin:6px 0 12px}th,td{padding:6px 4px;text-align:center;border-bottom:1px solid #e3e8dc}th:first-child,td:first-child{text-align:left;overflow-wrap:anywhere}th{font:700 11px ui-monospace,monospace;text-transform:uppercase}select{font:inherit;padding:8px;border-radius:8px;border:1px solid #aab9aa;background:white;margin:0 0 12px}section article{background:#f7f8ee}.think p{animation:pulse 1s ease-in-out infinite}@keyframes pulse{50%{opacity:.3}}.tabs{display:flex;gap:8px;margin:0 0 4px}.tabs button{flex:1}.up{color:#2f7a3e}.down{color:#a02f12}[hidden]{display:none!important}.now{border:2px solid #99bb54;background:#f1fbd7!important}#sync{position:fixed;right:10px;bottom:10px;z-index:9;padding:7px 12px;border-radius:99px;background:#073d36;color:#f2f3e9;font:700 12px ui-monospace,monospace}#sync.failed,#sync.offline{background:#a02f12}#sync button{min-height:0;padding:2px 8px;margin-left:6px;font-size:12px}.live-odds{margin:12px 0;padding:12px;border:1px solid #99bb54;background:#f1fbd7;border-radius:10px}.live-odds .row{padding:9px 0}.live-odds strong{font-size:17px}.rh>summary{font-size:20px;font-weight:800;letter-spacing:-.03em}details>summary{font-weight:650}
+*{box-sizing:border-box}body{margin:0;background:#f2f3e9;color:#123c33;font:16px system-ui,sans-serif}header{background:#073d36;color:#f2f3e9;border-bottom:5px solid #c8f661}main,.inner{max-width:850px;margin:auto;padding:24px}.brand{font-weight:900;font-size:22px;letter-spacing:-1px}.logo{color:#c8f661}.hero{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:32px 0 6px}small{font:700 11px ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase}h1{font-size:clamp(40px,8vw,76px);letter-spacing:-.07em;line-height:.98;margin:10px 0}.court{width:25%;max-width:175px;flex:none}section,article{background:#fffef6;border:1px solid #ced7c7;border-radius:16px;padding:20px;margin:12px 0}h2{margin:0 0 8px;letter-spacing:-.04em}p{line-height:1.5;margin:7px 0 16px}textarea,input,button{font:inherit}textarea{width:100%;margin:8px 0;padding:14px;border-radius:10px;border:1px solid #9aaa9b;resize:vertical;background:#fafbf4}button{cursor:pointer;min-height:46px;padding:10px 16px;border:1px solid #afbdad;border-radius:9px;background:white;color:#123c33;font-weight:650}.primary{background:#c8f661;border-color:#99bb54}.row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}button:disabled{opacity:.45}.player{width:100%;text-align:left;margin:4px 0;overflow-wrap:anywhere}.player:after{content:'→';float:right}details{margin-top:9px}summary{cursor:pointer;padding:10px 0}.scores{display:flex;gap:8px;flex-wrap:wrap}.scores label{flex:1;min-width:80px;overflow-wrap:anywhere}input{display:block;width:100%;padding:10px;margin:5px 0;border:1px solid #aab9aa;border-radius:7px}.scores button{align-self:end}.badge{color:#56745e}.error{color:#a02f12}.winner{background:#d9f7a9}article{overflow-wrap:anywhere}nav{margin:16px 0}h3{margin:28px 0 4px} table{width:100%;border-collapse:collapse;margin:6px 0 12px}th,td{padding:6px 4px;text-align:center;border-bottom:1px solid #e3e8dc}th:first-child,td:first-child{text-align:left;overflow-wrap:anywhere}th{font:700 11px ui-monospace,monospace;text-transform:uppercase}select{font:inherit;padding:8px;border-radius:8px;border:1px solid #aab9aa;background:white;margin:0 0 12px}section article{background:#f7f8ee}.think p{animation:pulse 1s ease-in-out infinite}@keyframes pulse{50%{opacity:.3}}.tabs{display:flex;gap:8px;margin:0 0 4px}.tabs button{flex:1}.up{color:#2f7a3e}.down{color:#a02f12}[hidden]{display:none!important}.now{border:2px solid #99bb54;background:#f1fbd7!important}#sync{position:fixed;right:10px;bottom:10px;z-index:9;padding:7px 12px;border-radius:99px;background:#073d36;color:#f2f3e9;font:700 12px ui-monospace,monospace}#sync.failed,#sync.offline{background:#a02f12}#sync button{min-height:0;padding:2px 8px;margin-left:6px;font-size:12px}.rh>summary{font-size:20px;font-weight:800;letter-spacing:-.03em}details>summary{font-weight:650}
+
+.odds-switch{display:inline-flex;align-items:center;justify-content:space-between;gap:12px;border:0;background:transparent}
+.odds-track{display:inline-flex;align-items:center;width:48px;height:29px;padding:3px;border-radius:20px;background:#696b70}
+.odds-track::before{content:'';width:23px;height:23px;border-radius:50%;background:white;box-shadow:0 1px 3px #0003}
+.odds-switch[aria-checked="true"] .odds-track{background:#39814a}
+.odds-switch[aria-checked="true"] .odds-track::before{transform:translateX(19px)}
 </style><header><div class="inner"><div class="brand"><span class="logo">◉</span> raliu</div><div class="hero"><div><small>tenis de masă / eliminare directă</small><h1>turneu de<br>ping-pong.</h1></div><svg class="court" viewBox="0 0 150 120" aria-hidden="true"><g transform="rotate(-12 75 60)" stroke="#cbf865" fill="none" stroke-width="3"><rect x="12" y="23" width="126" height="75" rx="3"/><path d="M12 61h126M75 16v89"/><path stroke-dasharray="5 6" d="m32 77 66-39"/></g><circle cx="104" cy="30" r="9" fill="#ffab73"/></svg></div></div></header><main><nav class="tabs"><button id="tt" class="primary">turneu</button><button id="te">elo</button></nav><div id="tour"><section id="setup"><small>01 / înscrieri</small><h2>cine joacă?</h2><label for="names">scrie câte un nume pe fiecare rând.</label><textarea id="names" rows="6"></textarea><div><label for="adv">avansează din fiecare grupă: </label><select id="adv"><option value="2">primii 2</option><option value="1">doar primul</option></select></div><div class="row"><span id="count"></span><button class="primary" id="start">amestecă și începe ↗</button></div><div role="alert" id="error" class="error"></div></section><div id="board"></div></div><div id="eloview" hidden></div><section id="bk"><small>backup</small><h2>copie de siguranță</h2><p>salvează turneul și elo-ul într-un fișier sau restaurează dintr-un fișier.</p><div class="row"><button id="bx">descarcă backup</button><button id="bi">restaurează din fișier…</button></div><input type="file" id="bf" accept="application/json,.json" hidden><div id="bm" role="alert"></div></section></main><div id="sync" role="status"></div><script>
 const $=id=>document.getElementById(id),names=$('names'),key='raliu-tournament-v2';
 let state=null;try{state=JSON.parse(localStorage.getItem(key))}catch{}
@@ -91,30 +97,30 @@ function livePointChance(a,b){
 }
 function liveOdds(a,b,x,y){
  const probability=pointGameProbability(x,y,livePointChance(a,b));
- return {a:formatOdds(probability,'x'),b:formatOdds(1-probability,'x'),pa:probability,pb:1-probability};
+ return {a:formatOdds(probability,'x'),b:formatOdds(1-probability,'x'),fav:Math.abs(probability-.5)<.02?null:probability>.5?a:b};
 }
 function match(parent,a,b,id,label){let r=state.results[id],card=el('article',null,/^se joacă/.test(label)&&!r?'now':'',parent);el('small',label,'badge',card);
 function win(winner,scores){state.results[id]={winner,scores};state.history.push(id);elo(id,a,b,winner,scores);save();if(id[0]==='g'){think=+id.slice(1).split('-')[0];render();setTimeout(()=>{think=null;render()},1000)}else render()}
 if(r){el('p',a+' '+(r.scores?r.scores.join(' – '):' vs. ')+' '+b,null,card);el('strong','✓ '+r.winner,null,card)}
-else if(a&&b){let o=odds(a,b),buttons=[];
- el('p',showOdds?'apasă pe câștigător • cote elo înainte de meci':'apasă pe câștigător',null,card);
- [a,b].forEach((n,k)=>buttons.push(button(n+(showOdds?'  •  '+(k?o.b:o.a)+(o.fav===n?'  ⭐':''):''),'player',card,()=>win(n,null))));
+else if(a&&b){
+ const hint=el('p','apasă pe câștigător',null,card);
+ const buttons=[a,b].map(n=>button(n,'player',card,()=>win(n,null)));
  let det=el('div',null,'',card);el('small','sau introdu scorul','badge',det);
  let form=el('form',null,'scores',det),fields=[a,b].map((n,k)=>{let lab=el('label',n,null,form),f=el('input',null,'',lab);Object.assign(f,{type:'number',inputMode:'numeric',min:'0',step:'1',required:true});f.dataset.k=JSON.stringify([draftScope(),id,a,b,k]);f.value=drafts[f.dataset.k]||'';return f});
  el('button','salvează','primary',form);
- let live=el('div',null,'live-odds',det);live.setAttribute('aria-live','polite');
  let msg=el('div','','error',det);msg.setAttribute('role','alert');
  function updateLive(){
-  if(!showOdds){live.hidden=true;return}
-  live.hidden=false;
-  const values=fields.map(f=>f.value.trim()),valid=values.every(v=>v!==''&&Number.isSafeInteger(Number(v))&&Number(v)>=0);
-  const score=valid?values.map(Number):[0,0],L=liveOdds(a,b,score[0],score[1]);
-  live.replaceChildren();
-  el('small',valid?'cote live • scor '+score.join(' – '):'cote live • pornește de la 0 – 0','badge',live);
-  const row=el('div',null,'row',live);
-  el('strong',a+'  '+L.a,null,row);el('strong',b+'  '+L.b,null,row);
-  el('small','probabilități estimate: '+(L.pa*100).toFixed(1)+'% / '+(L.pb*100).toFixed(1)+'%','badge',live);
-  if(valid&&(score[0]>=11||score[1]>=11)&&Math.abs(score[0]-score[1])>=2)el('small','joc încheiat la acest scor',null,live);
+  if(!showOdds)return;
+  const values=fields.map(f=>f.value.trim());
+  const valid=values.every(v=>v!==''&&Number.isSafeInteger(Number(v))&&Number(v)>=0);
+  const [x,y]=values.map(Number);
+  const current=valid?liveOdds(a,b,x,y):odds(a,b);
+  hint.textContent='apasă pe câștigător • '+(valid?'cote live':'cote înainte de meci');
+  if(valid&&Math.max(x,y)>=11&&Math.abs(x-y)>=2)hint.textContent+=' • joc încheiat la acest scor';
+  buttons.forEach((btn,k)=>{
+   const name=k?b:a;
+   btn.textContent=name+' • '+(k?current.b:current.a)+(current.fav===name?' ⭐':'');
+  });
  }
  fields.forEach(f=>f.addEventListener('input',updateLive));updateLive();
  form.onsubmit=e=>{e.preventDefault();let s=fields.map(f=>Number(f.value));if(s[0]===s[1]){msg.textContent='scor egal. cine a câștigat meciul?';return}win(s[0]>s[1]?a:b,s)}
@@ -137,7 +143,16 @@ function render0(){let board=$('board');board.replaceChildren();$('setup').hidde
 let G=state.groups,nav=el('nav',null,'row',board);el('small',state.players.length+' participanți • '+G.length+(G.length===1?' grupă':' grupe'),null,nav);
 button('anulează ultimul rezultat','',nav,()=>{let id=state.history.pop();eloUndo(id);delete state.results[id];if(id[0]==='g'){state.pairs=null;if(state.tb)delete state.tb[+id.slice(1).split('-')[0]]}save();render()}).disabled=!state.history.length;
 let nb=button('turneu nou','',nav,()=>{if(state.history.length&&!nb.dataset.sure){nb.dataset.sure='1';nb.textContent='sigur? apasă din nou';setTimeout(()=>{nb.dataset.sure='';nb.textContent='turneu nou'},4000);return}names.value=state.players.join('\n');state=null;think=null;save();$('error').textContent='';render()});
-button('cote: '+(showOdds?'pornite':'oprite'),'',nav,()=>{showOdds=!showOdds;try{localStorage.setItem('raliu-odds',showOdds?'1':'0')}catch{}render()});
+const oddsSwitch=button('cote live','odds-switch',nav,()=>{
+ showOdds=!showOdds;
+ try{localStorage.setItem('raliu-odds',showOdds?'1':'0')}catch{}
+ render();
+ document.getElementById('odds-switch')?.focus({preventScroll:true});
+});
+oddsSwitch.id='odds-switch';
+oddsSwitch.setAttribute('role','switch');
+oddsSwitch.setAttribute('aria-checked',String(showOdds));
+el('span',null,'odds-track',oddsSwitch).setAttribute('aria-hidden','true');
 el('h3','faza grupelor',null,board);
 let K=G.length===1?1:state.adv,gok=gi=>gfin(gi)&&!table(gi).tie,cur=G.findIndex((g,gi)=>!gok(gi)),done=cur<0;
 G.forEach((g,gi)=>{if(cur>=0&&gi>cur)return;let s=el('section',null,'',board),rows=table(gi);el('h2','grupa '+letters(gi),null,s);
