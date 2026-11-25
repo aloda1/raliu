@@ -77,7 +77,7 @@ function renderHeadToHead(section, log, tournament) {
           pairing.append(' ');
         }
         const player=el(won?'strong':'span',name,null,pairing);
-        if(won&&!hasScore) {
+        if(won) {
           const mark=el('span','✓','result-check');
           mark.setAttribute('aria-label','câștigător');
           if(i) player.append(' ',mark);
