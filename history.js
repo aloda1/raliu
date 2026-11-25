@@ -12,15 +12,13 @@ function renderHeadToHead(section, log) {
   }
 
   el('h3', 'meciuri directe', null, section);
-  const table = el('table', null, 'head-to-head', section);
-  const header = el('tr', null, null, el('thead', null, null, table));
-  el('th', 'jucător', null, header);
-  el('th', 'victorii', null, header);
-  const body = el('tbody', null, null, table);
+  const row = el('div', null, 'head-to-head', section);
+  const score = el('strong', null, 'head-score');
+  score.setAttribute('aria-live', 'polite');
   const choices = [...names].sort((a, b) => a[1].localeCompare(b[1], 'ro'));
-  const rows = historyPair.map((key, index) => {
-    const row = el('tr', null, null, body);
-    const select = el('select', null, null, el('td', null, null, row));
+  const selects = historyPair.map((key, index) => {
+    if (index === 1) row.append(score);
+    const select = el('select', null, null, row);
     select.setAttribute('aria-label', index ? 'al doilea jucător' : 'primul jucător');
     for (const [value, label] of choices) el('option', label, null, select).value = value;
     select.value = key;
@@ -30,7 +28,7 @@ function renderHeadToHead(section, log) {
       historyPair[index] = select.value;
       update();
     };
-    return { select, wins: el('td', null, null, row) };
+    return select;
   });
 
   function update() {
@@ -41,10 +39,10 @@ function renderHeadToHead(section, log) {
       const winner = historyPair.indexOf(historyName(match.w));
       if (winner >= 0) wins[winner]++;
     }
-    rows.forEach((row, index) => {
-      row.select.value = historyPair[index];
-      row.wins.textContent = String(wins[index]);
-    });
+    selects.forEach((select, index) => { select.value = historyPair[index]; });
+    score.textContent = wins.join(' – ');
+    score.setAttribute('aria-label', names.get(historyPair[0]) + ': ' + wins[0] + ' victorii, ' +
+      names.get(historyPair[1]) + ': ' + wins[1] + ' victorii');
   }
   update();
 }
