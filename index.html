@@ -56,7 +56,12 @@ $('start').onclick=()=>{let players=entries();if(new Set(players.map(x=>x.toLoca
 function el(tag,txt,cls,parent){let e=document.createElement(tag);if(txt!=null)e.textContent=txt;if(cls)e.className=cls;if(parent)parent.append(e);return e}
 function button(txt,cls,parent,fn){let b=el('button',txt,cls,parent);b.onclick=fn;return b}
 // cote zecimale din elo; 1.90 la 1.90 dacă unul dintre jucători nu are meciuri
-function odds(a,b){let A=E.r[nk(a)],B=E.r[nk(b)];if(!A||!B||!(A.g||A.s)||!(B.g||B.s))return{a:'1.90',b:'1.90',fav:null};let p=Math.min(.9962,Math.max(.0038,1/(1+10**((B.e-A.e)/400)))),f=x=>Math.min(250,Math.max(1.05,.95/x)).toFixed(2);return{a:f(p),b:f(1-p),fav:Math.abs(p-.5)<.02?null:p>.5?a:b}}
+function formatOdds(probability, suffix = '') {
+ const value = Math.min(250, .95 / probability);
+ if (value < 1.001) return '🔒 indisponibil';
+ return value.toFixed(value < 1.01 ? 3 : 2) + suffix;
+}
+function odds(a,b){let A=E.r[nk(a)],B=E.r[nk(b)];if(!A||!B||!(A.g||A.s)||!(B.g||B.s))return{a:'1.90',b:'1.90',fav:null};let p=Math.min(.9962,Math.max(.0038,1/(1+10**((B.e-A.e)/400))));return{a:formatOdds(p),b:formatOdds(1-p),fav:Math.abs(p-.5)<.02?null:p>.5?a:b}}
 // probabilitate de a castiga un joc la 11, cu diferenta de doua puncte.
 // dupa 10-10, probabilitatea se calculeaza analitic (fara recursie infinita).
 function pointGameProbability(x,y,p){
@@ -86,8 +91,7 @@ function livePointChance(a,b){
 }
 function liveOdds(a,b,x,y){
  const probability=pointGameProbability(x,y,livePointChance(a,b));
- const fmt=v=>Math.min(250,Math.max(1.05,.95/Math.max(v,.000001))).toFixed(2);
- return {a:fmt(probability),b:fmt(1-probability),pa:probability,pb:1-probability};
+ return {a:formatOdds(probability,'x'),b:formatOdds(1-probability,'x'),pa:probability,pb:1-probability};
 }
 function match(parent,a,b,id,label){let r=state.results[id],card=el('article',null,/^se joacă/.test(label)&&!r?'now':'',parent);el('small',label,'badge',card);
 function win(winner,scores){state.results[id]={winner,scores};state.history.push(id);elo(id,a,b,winner,scores);save();if(id[0]==='g'){think=+id.slice(1).split('-')[0];render();setTimeout(()=>{think=null;render()},1000)}else render()}
@@ -108,8 +112,8 @@ else if(a&&b){let o=odds(a,b),buttons=[];
   live.replaceChildren();
   el('small',valid?'cote live • scor '+score.join(' – '):'cote live • pornește de la 0 – 0','badge',live);
   const row=el('div',null,'row',live);
-  el('strong',a+'  '+L.a+'x',null,row);el('strong',b+'  '+L.b+'x',null,row);
-  el('small','probabilități estimate: '+(L.pa*100).toFixed(1)+'% / '+(L.pb*100).toFixed(1)+'% • plafon 250.00x','badge',live);
+  el('strong',a+'  '+L.a,null,row);el('strong',b+'  '+L.b,null,row);
+  el('small','probabilități estimate: '+(L.pa*100).toFixed(1)+'% / '+(L.pb*100).toFixed(1)+'%','badge',live);
   if(valid&&(score[0]>=11||score[1]>=11)&&Math.abs(score[0]-score[1])>=2)el('small','joc încheiat la acest scor',null,live);
  }
  fields.forEach(f=>f.addEventListener('input',updateLive));updateLive();
