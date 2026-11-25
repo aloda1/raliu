@@ -6,11 +6,13 @@
 .odds-track::before{content:'';width:23px;height:23px;border-radius:50%;background:white;box-shadow:0 1px 3px #0003}
 .odds-switch[aria-checked="true"] .odds-track{background:#39814a}
 .odds-switch[aria-checked="true"] .odds-track::before{transform:translateX(19px)}
-</style><header><div class="inner"><div class="brand"><span class="logo">◉</span> raliu</div><div class="hero"><div><small>tenis de masă / eliminare directă</small><h1>turneu de<br>ping-pong.</h1></div><svg class="court" viewBox="0 0 150 120" aria-hidden="true"><g transform="rotate(-12 75 60)" stroke="#cbf865" fill="none" stroke-width="3"><rect x="12" y="23" width="126" height="75" rx="3"/><path d="M12 61h126M75 16v89"/><path stroke-dasharray="5 6" d="m32 77 66-39"/></g><circle cx="104" cy="30" r="9" fill="#ffab73"/></svg></div></div></header><main><nav class="tabs"><button id="tt" class="primary">turneu</button><button id="te">elo</button></nav><div id="tour"><section id="setup"><small>01 / înscrieri</small><h2>cine joacă?</h2><label for="names">scrie câte un nume pe fiecare rând.</label><textarea id="names" rows="6"></textarea><div><label for="adv">avansează din fiecare grupă: </label><select id="adv"><option value="2">primii 2</option><option value="1">doar primul</option></select></div><div class="row"><span id="count"></span><button class="primary" id="start">amestecă și începe ↗</button></div><div role="alert" id="error" class="error"></div></section><div id="board"></div></div><div id="eloview" hidden></div><section id="bk"><small>backup</small><h2>copie de siguranță</h2><p>salvează turneul și elo-ul într-un fișier sau restaurează dintr-un fișier.</p><div class="row"><button id="bx">descarcă backup</button><button id="bi">restaurează din fișier…</button></div><input type="file" id="bf" accept="application/json,.json" hidden><div id="bm" role="alert"></div></section></main><div id="sync" role="status"></div><script>
+</style><header><div class="inner"><div class="brand"><span class="logo">◉</span> raliu</div><div class="hero"><div><small>tenis de masă / eliminare directă</small><h1>turneu de<br>ping-pong.</h1></div><svg class="court" viewBox="0 0 150 120" aria-hidden="true"><g transform="rotate(-12 75 60)" stroke="#cbf865" fill="none" stroke-width="3"><rect x="12" y="23" width="126" height="75" rx="3"/><path d="M12 61h126M75 16v89"/><path stroke-dasharray="5 6" d="m32 77 66-39"/></g><circle cx="104" cy="30" r="9" fill="#ffab73"/></svg></div></div></header><main><nav class="tabs"><button id="tt" class="primary">turneu</button><button id="te">elo</button></nav><div id="tour"><section id="setup"><small>01 / înscrieri</small><h2>cine joacă?</h2><label for="names">scrie câte un nume pe fiecare rând.</label><textarea id="names" rows="6"></textarea><div><label for="adv">avansează din fiecare grupă: </label><select id="adv"><option value="2">primii 2</option><option value="1">doar primul</option></select></div><div class="row"><span id="count"></span><button class="primary" id="start">amestecă și începe ↗</button></div><div role="alert" id="error" class="error"></div></section><div id="board"></div></div><div id="eloview" hidden></div><section id="bk"><small>backup</small><h2>copie de siguranță</h2><p>salvează turneul și elo-ul într-un fișier sau restaurează dintr-un fișier.</p><div class="row"><button id="bx">descarcă backup</button><button id="bi">restaurează din fișier…</button></div><input type="file" id="bf" accept="application/json,.json" hidden><div id="bm" role="alert"></div></section></main><div id="sync" role="status"></div><script src="./firebase.js"></script>
+<script src="./odds.js"></script>
+<script>
 const $=id=>document.getElementById(id),names=$('names'),key='raliu-tournament-v2';
 let state=null;try{state=JSON.parse(localStorage.getItem(key))}catch{}
 let ts=0;try{ts=+localStorage.getItem(key+'-t')||0}catch{}
-function save(){ts=Math.max(Date.now(),ts+1);try{localStorage.setItem(key,JSON.stringify(state));localStorage.setItem(key+'-t',ts)}catch{}push('tournament/current',()=>JSON.stringify(state),ts)}
+function save(){ts=Math.max(Date.now(),ts+1);try{localStorage.setItem(key,JSON.stringify(state));localStorage.setItem(key+'-t',ts)}catch{}firebaseSync.push('tournament/current',()=>JSON.stringify(state),ts)}
 const entries=()=>names.value.split(/\r?\n/).map(n=>n.trim()).filter(Boolean);
 // grupe de ~3: 10 -> 4+3+3, 7 -> 4+3, 12 -> 3+3+3+3
 function sizes(n){let g=Math.max(1,Math.floor(n/3)),base=Math.floor(n/g),extra=n%g;return Array.from({length:g},(_,i)=>base+(i<extra?1:0))}
@@ -24,7 +26,7 @@ function seed(q){let size=2**Math.ceil(Math.log2(q.length)),best;for(let t=0;t<2
 let think=null;
 // ---- elo (separat de turneu, rămâne salvat în browser) ----
 const ek='raliu-elo-v1';let E={r:{},log:[]};try{E=JSON.parse(localStorage.getItem(ek))||E}catch{}
-const esave=()=>{E.t=Math.max(Date.now(),(E.t||0)+1);if(E.log.length>300)E.log=E.log.slice(-300);try{localStorage.setItem(ek,JSON.stringify(E))}catch{}push('elo/ratings',()=>JSON.stringify(E),E.t)};
+const esave=()=>{E.t=Math.max(Date.now(),(E.t||0)+1);if(E.log.length>300)E.log=E.log.slice(-300);try{localStorage.setItem(ek,JSON.stringify(E))}catch{}firebaseSync.push('elo/ratings',()=>JSON.stringify(E),E.t)};
 const nk=n=>Object.keys(E.r).find(k=>k.toLowerCase()===n.toLowerCase())||n;
 function elo(id,a,b,w,sc){state.tid=state.tid||Math.random().toString(36).slice(2);let P=n=>{n=nk(n);return E.r[n]||(E.r[n]={e:1000,g:0,w:0,c:0})},A=P(a),B=P(b),ea=1/(1+10**((B.e-A.e)/400)),win=w===a,d=sc?Math.min(Math.abs(sc[0]-sc[1]),11):0,k=32*(1+d/11),da=Math.round(k*((win?1:0)-ea)),db=-da;
 E.log.push({t:state.tid,id,a,b,w,da,db,pa:A.c,pb:B.c});A.e+=da;B.e+=db;A.g++;B.g++;(win?A:B).w++;A.c=da;B.c=db;esave()}
@@ -61,44 +63,6 @@ const gfin=gi=>fx(state.groups[gi]).every((_,i)=>state.results['g'+gi+'-'+i]);
 $('start').onclick=()=>{let players=entries();if(new Set(players.map(x=>x.toLocaleLowerCase('ro'))).size!==players.length){$('error').textContent='două nume coincid. adaugă o inițială ca să distingi jucătorii.';return}state={tid:(crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2)+Date.now().toString(36)),players,adv:+$('adv').value,groups:split(players),results:{},history:[],pairs:null};save();render()};
 function el(tag,txt,cls,parent){let e=document.createElement(tag);if(txt!=null)e.textContent=txt;if(cls)e.className=cls;if(parent)parent.append(e);return e}
 function button(txt,cls,parent,fn){let b=el('button',txt,cls,parent);b.onclick=fn;return b}
-// cote zecimale din elo; 1.90 la 1.90 dacă unul dintre jucători nu are meciuri
-function formatOdds(probability, suffix = '') {
- const value = Math.min(250, .95 / probability);
- if (value < 1.001) return '🔒 indisponibil';
- return value.toFixed(value < 1.01 ? 3 : 2) + suffix;
-}
-function odds(a,b){let A=E.r[nk(a)],B=E.r[nk(b)];if(!A||!B||!(A.g||A.s)||!(B.g||B.s))return{a:'1.90',b:'1.90',fav:null};let p=Math.min(.9962,Math.max(.0038,1/(1+10**((B.e-A.e)/400))));return{a:formatOdds(p),b:formatOdds(1-p),fav:Math.abs(p-.5)<.02?null:p>.5?a:b}}
-// probabilitate de a castiga un joc la 11, cu diferenta de doua puncte.
-// dupa 10-10, probabilitatea se calculeaza analitic (fara recursie infinita).
-function pointGameProbability(x,y,p){
- p=Math.max(.000001,Math.min(.999999,p));
- const q=1-p,deuce=p*p/(p*p+q*q),memo=new Map();
- function f(a,b){
-  if((a>=11||b>=11)&&Math.abs(a-b)>=2)return a>b?1:0;
-  if(a>=10&&b>=10){
-   if(a===b)return deuce;
-   if(a===b+1)return p+q*deuce;
-   if(b===a+1)return p*deuce;
-  }
-  const k=a+','+b;if(memo.has(k))return memo.get(k);
-  const v=p*f(a+1,b)+q*f(a,b+1);memo.set(k,v);return v;
- }
- return f(x,y);
-}
-// elo estimeaza sansa de a castiga jocul, nu fiecare punct.
-// calibram sansa pe punct pentru ca la 0-0 modelul sa respecte elo-ul.
-function livePointChance(a,b){
- const A=E.r[nk(a)],B=E.r[nk(b)];
- if(!A||!B||!(A.g||A.s)||!(B.g||B.s))return .5;
- const target=Math.max(.0038,Math.min(.9962,1/(1+10**((B.e-A.e)/400))));
- let lo=.000001,hi=.999999;
- for(let i=0;i<30;i++){const mid=(lo+hi)/2;if(pointGameProbability(0,0,mid)<target)lo=mid;else hi=mid}
- return (lo+hi)/2;
-}
-function liveOdds(a,b,x,y){
- const probability=pointGameProbability(x,y,livePointChance(a,b));
- return {a:formatOdds(probability,'x'),b:formatOdds(1-probability,'x'),fav:Math.abs(probability-.5)<.02?null:probability>.5?a:b};
-}
 function match(parent,a,b,id,label){let r=state.results[id],card=el('article',null,/^se joacă/.test(label)&&!r?'now':'',parent);el('small',label,'badge',card);
 function win(winner,scores){state.results[id]={winner,scores};state.history.push(id);elo(id,a,b,winner,scores);save();if(id[0]==='g'){think=+id.slice(1).split('-')[0];render();setTimeout(()=>{think=null;render()},1000)}else render()}
 if(r){el('p',a+' '+(r.scores?r.scores.join(' – '):' vs. ')+' '+b,null,card);el('strong','✓ '+r.winner,null,card)}
@@ -139,8 +103,7 @@ else if(a&&b){
   const side=advantage.value;
   status.textContent=side===''?'egalitate • cine ia următorul punct?':'avantaj '+(side==='0'?a:b)+' • cine ia următorul punct?';
   if(!showOdds)return;
-  let current=valid?liveOdds(a,b,x,y):odds(a,b);
-  if(tied&&side!=='')current=liveOdds(a,b,side==='0'?11:10,side==='1'?11:10);
+  const current=raliuOdds.calculate(a,b,E.r[nk(a)],E.r[nk(b)],valid?[x,y]:null,side);
   hint.textContent='apasă pe câștigător • '+(valid?'cote live':'cote înainte de meci');
   if(valid&&Math.max(x,y)>=11&&Math.abs(x-y)>=2)hint.textContent+=' • joc încheiat la acest scor';
   buttons.forEach((btn,k)=>{
@@ -155,7 +118,7 @@ else el('p',(a||'în așteptare')+' vs. '+(b||'în așteptare'),null,card)}
 function crown(board,w,s2){let c=el('section',null,'winner');el('small','turneu încheiat',null,c);el('h2','🏆 '+w,null,c);if(s2)el('p','locul 2: '+s2,null,c);if(state.results['3rd'])el('p','locul 3: '+state.results['3rd'].winner,null,c);board.prepend(c)}
 let showOdds=true;try{showOdds=localStorage.getItem('raliu-odds')!=='0'}catch{}
 const CERTAIN=.6; // sub acest prag (favorit < 60%) meciul e prea echilibrat și nu arătăm indiciu
-function nextHint(seq,p){const m=seq[p],A=E.r[nk(m.a)],B=E.r[nk(m.b)];if(!A||!B||!(A.g||A.s)||!(B.g||B.s))return null;const pa=1/(1+10**((B.e-A.e)/400));if(Math.max(pa,1-pa)<CERTAIN)return null;const win=pa>.5?m.a:m.b,lose=pa>.5?m.b:m.a,n=seq.slice(p+1).find(x=>(x.a===lose||x.b===lose)&&x.a!==win&&x.b!==win);return n?lose+' – '+(n.a===lose?n.b:n.a):null}
+function nextHint(seq,p){const m=seq[p],A=E.r[nk(m.a)],B=E.r[nk(m.b)];const pa=raliuOdds.ratingChance(A,B);if(pa===null||Math.max(pa,1-pa)<CERTAIN)return null;const win=pa>.5?m.a:m.b,lose=pa>.5?m.b:m.a,n=seq.slice(p+1).find(x=>(x.a===lose||x.b===lose)&&x.a!==win&&x.b!==win);return n?lose+' – '+(n.a===lose?n.b:n.a):null}
 let drafts={};
 function draftScope(){return JSON.stringify(state?[state.tid||null,state.players,state.groups]:null)}
 function clearDrafts(){drafts={};document.querySelectorAll('#board input[data-k]').forEach(i=>i.value='')}
@@ -202,85 +165,12 @@ else{let lab=!state.results[id]&&a&&b&&!nw?(nw=true,'se joacă acum • meci '+(
 next.push(winner);if(pairs.length===1&&winner)crown(board,winner,winner===a?b:a)});
 if(pairs.length===2&&!block&&!(round===0&&pairs.some(p=>p[1]===null))){let L=pairs.map(([a,b],i)=>{let r=state.results[round+'-'+i];return r.winner===a?b:a});el('h3','mica finală',null,board);match(board,L[0],L[1],'3rd',state.results['3rd']?'meci':'se joacă acum • mica finală');if(!state.results['3rd'])block=true}
 if(!block&&pairs.length>1)rd.open=false;if(block||next.length===1)break;pairs=[];for(let j=0;j<next.length;j+=2)pairs.push(next.slice(j,j+2));round++}}
-// Cloud Firestore stores the tournament and Elo in separate documents.
-let cloud=null;
-const pt={},bad={},pend={},ready=new Set();
-function upd(){
- if(!navigator.onLine)return setSync('offline');
- if(Object.keys(bad).length)return setSync('failed');
- if(Object.keys(pend).length)return setSync('saving');
- setSync(ready.size===2?'saved':'local');
-}
-function setSync(s){const e=$('sync');e.replaceChildren();e.className=s;e.append({local:'salvat doar pe acest telefon',saving:'se salvează…',saved:'salvat online ✓',failed:'nu s-a salvat online',offline:'fără internet'}[s]);if(s==='failed'||s==='offline')button('reîncearcă','',e,retry)}
-function retry(){startFirebase()}
-// One in-flight write per document; retain an immutable snapshot of the latest queued save.
-const queues={};
-function push(path,get,t){
- if(!cloud){setSync('local');return}
- const q=queues[path]||(queues[path]={running:false,next:null});
- q.next={t,s:get()};pend[path]=1;setSync('saving');
- clearTimeout(pt[path]);pt[path]=setTimeout(()=>flush(path),500);
-}
-async function flush(path){
- const q=queues[path];if(!q||q.running||!q.next)return;
- q.running=true;
- try{
-  while(q.next){
-   const payload=q.next;q.next=null;
-   try{const r=await cloud.doc(path).set(payload);if(r&&r.ok===false)throw new Error('HTTP '+r.status);delete bad[path]}
-   catch{bad[path]=1}
-  }
- }finally{q.running=false;delete pend[path];upd()}
-}
+function setSync(s){const e=$('sync');e.replaceChildren();e.className=s;e.append({local:'salvat doar pe acest telefon',saving:'se salvează…',saved:'salvat online ✓',failed:'nu s-a salvat online',offline:'fără internet'}[s]);if(s==='failed'||s==='offline')button('reîncearcă','',e,firebaseSync.start)}
 const applyElo=d=>{if(d&&d.t>(E.t||0)){try{E=JSON.parse(d.s)}catch{return}E.t=d.t;try{localStorage.setItem(ek,d.s)}catch{}if(tab==='e')eloRender();else render()}
-else if((!d||d.t<(E.t||0))&&(E.t||Object.keys(E.r).length))push('elo/ratings',()=>JSON.stringify(E),E.t||(E.t=Date.now()))};
+else if((!d||d.t<(E.t||0))&&(E.t||Object.keys(E.r).length))firebaseSync.push('elo/ratings',()=>JSON.stringify(E),E.t||(E.t=Date.now()))};
 const applyTour=d=>{if(d&&d.t>ts){try{state=JSON.parse(d.s)}catch{return}ts=d.t;try{localStorage.setItem(key,d.s);localStorage.setItem(key+'-t',ts)}catch{}render()}
-else if((!d||d.t<ts)&&(state||ts))push('tournament/current',()=>JSON.stringify(state),ts||(ts=Date.now()))};
-let connecting=false;
-const listeners=[];
-async function startFirebase(){
- if(connecting)return;
- connecting=true;
- try{
-  const base='https://www.gstatic.com/firebasejs/10.14.1/';
-  const [{initializeApp,getApps},{getFirestore,doc,onSnapshot,runTransaction}]=await Promise.all([
-   import(base+'firebase-app.js'),import(base+'firebase-firestore.js')
-  ]);
-  const app=getApps()[0]||initializeApp({
-   projectId:'raliu-ae011',authDomain:'raliu-ae011.firebaseapp.com',
-   apiKey:'AIzaSyDzskQc2sr-FoD45U9lZa3HX67vuVhUUbk'
-  });
-  const db=getFirestore(app);
-  cloud={doc:path=>({set:payload=>runTransaction(db,async tx=>{
-   const ref=doc(db,path),current=await tx.get(ref);
-   if(!current.exists()||current.data().t<payload.t)tx.set(ref,payload);
-  })})};
-  listeners.splice(0).forEach(stop=>stop());
-  ready.clear();
-  delete bad.connect;
-  for(const [path,apply] of [['elo/ratings',applyElo],['tournament/current',applyTour]]){
-   const ref=doc(db,path);
-   const stop=onSnapshot(ref,{includeMetadataChanges:true},snap=>{
-    if(snap.metadata.fromCache||snap.metadata.hasPendingWrites){ready.delete(path);upd();return}
-    delete bad[path];
-    ready.add(path);
-    const data=snap.exists()?snap.data():null;
-    try{
-     if(data){
-      if(!Number.isSafeInteger(data.t)||typeof data.s!=='string')throw Error('format invalid');
-      JSON.parse(data.s);
-     }
-     apply(data);
-    }catch{bad[path]=1}
-    upd();
-   },error=>{console.warn('firestore',path,error.code);bad[path]=1;ready.delete(path);upd()});
-   listeners.push(stop);
-  }
- }catch(error){console.warn('firestore',error);bad.connect=1}
- finally{connecting=false;upd()}
-}
-window.addEventListener('online',retry);
-window.addEventListener('offline',upd);
+else if((!d||d.t<ts)&&(state||ts))firebaseSync.push('tournament/current',()=>JSON.stringify(state),ts||(ts=Date.now()))};
+const firebaseSync=createFirebaseSync({applyElo, applyTour, setSync});
 // ---- backup: validează înainte să schimbe ceva ----
 // Validate the complete candidate before restore can mutate or publish state.
 function validateBackup(d){
@@ -349,8 +239,8 @@ try{validateBackup(d)}catch(err){return no('backup invalid: '+err.message+'.')}
 const T=d.tournament,L=d.elo;
 m.replaceChildren();const c=el('article',null,'',m);el('strong','backup din '+(d.saved?new Date(d.saved).toLocaleString('ro'):'dată necunoscută'),null,c);
 el('p',(T?'turneu: '+T.players.length+' jucători, '+Object.keys(T.results).length+' rezultate':'fără turneu activ')+' • elo: '+Object.keys(L.r).length+' jucători',null,c);
-el('p','⚠ restaurarea înlocuiește turneul și elo-ul de acum'+(cloud?', iar schimbarea se trimite online și pentru ceilalți conectați.':' de pe acest telefon.'),'error',c);
+el('p','⚠ restaurarea înlocuiește turneul și elo-ul de acum'+(firebaseSync.isConnected()?', iar schimbarea se trimite online și pentru ceilalți conectați.':' de pe acest telefon.'),'error',c);
 const r=el('div',null,'row',c);button('restaurează','primary',r,()=>{clearDrafts();state=T;E=L;save();esave();m.replaceChildren();el('p','restaurat ✓','badge',m);render();tabs()});button('anulează','',r,()=>m.replaceChildren())}}
-bk();setSync('local');startFirebase();
+bk();setSync('local');firebaseSync.start();
 render()
 </script></html>
