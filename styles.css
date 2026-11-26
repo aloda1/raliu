@@ -43,7 +43,14 @@ button:disabled{opacity:.45}
 details{margin-top:9px}
 summary{cursor:pointer;padding:10px 0}
 .scores{display:flex;gap:8px;flex-wrap:wrap}
-.scores label{flex:1;min-width:80px;overflow-wrap:anywhere}
+.score-group{flex:1 1 118px;min-width:0;overflow-wrap:anywhere}
+.score-stepper{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;margin:5px 0}
+.score-stepper button{padding:0 8px;min-width:32px;min-height:44px;touch-action:manipulation}
+.score-stepper input{min-width:0;height:44px;margin:0;padding:2px;text-align:center;font-size:16px;appearance:textfield}
+.score-stepper input::-webkit-inner-spin-button,.score-stepper input::-webkit-outer-spin-button{appearance:none}
+.score-stepper button:first-child{border-radius:7px 0 0 7px}
+.score-stepper button:last-child{border-radius:0 7px 7px 0}
+.score-stepper input[type=number]{border-radius:0}
 input{display:block;width:100%;padding:10px;margin:5px 0;border:1px solid var(--border);border-radius:7px}
 .scores button{align-self:end}
 .badge{color:var(--muted)}

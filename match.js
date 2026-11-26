@@ -10,8 +10,29 @@ else if(a&&b){
  const det=el('div',null,null,card);
  const scoreLabel=el('small','sau introdu scorul','badge',det);
  const form=el('form',null,'scores',det);
+ const steppers=[];
  const fields=players.map((name,k)=>{
-  const input=el('input',null,null,el('label',name,null,form));
+  const group=el('div',null,'score-group',form);
+  const label=el('label',name,null,group);
+  const row=el('div',null,'score-stepper',group);
+  function stepButton(delta){
+   const btn=button(delta<0?'−':'+',null,row,()=>{
+    const value=input.valueAsNumber;
+    input.value=String((Number.isNaN(value)?0:value)+delta);
+    const other=fields[1-k];
+    if(other.value===''&&!other.validity.badInput)other.value='0';
+    input.dispatchEvent(new Event('input',{bubbles:true}));
+   });
+   btn.type='button';
+   btn.setAttribute('aria-label',(delta<0?'scade':'adaugă')+' un punct pentru '+name);
+   return btn;
+  }
+  const minus=stepButton(-1);
+  const input=el('input',null,null,row);
+  input.id='score-'+id+'-'+k;
+  label.htmlFor=input.id;
+  input.placeholder='0';
+  steppers.push([minus,stepButton(1)]);
   Object.assign(input,{type:'number',inputMode:'numeric',min:'0',step:'1',required:true});
   input.dataset.k=JSON.stringify([draftScope(),id,a,b,k]);
   input.value=drafts[input.dataset.k]||'';
@@ -51,6 +72,12 @@ else if(a&&b){
  const right=button(b,'',points,()=>point(1));
  function update(){
   const score=read(),empty=fields.every(f=>!f.value&&!f.validity.badInput);
+  fields.forEach((field,k)=>{
+   const blank=!field.value&&!field.validity.badInput;
+   const integer=Number.isSafeInteger(score[k])&&score[k]>=0;
+   steppers[k][0].disabled=!integer||score[k]===0;
+   steppers[k][1].disabled=!blank&&(!integer||score[k]===Number.MAX_SAFE_INTEGER);
+  });
   const valid=raliuOdds.validScore(score);
   const tied=isDeuce(score);
   const token=advantage.value.split(':');
