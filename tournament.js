@@ -56,15 +56,15 @@ oddsSwitch.setAttribute('aria-checked',String(showOdds));
 el('span',null,'odds-track',oddsSwitch).setAttribute('aria-hidden','true');
 el('h3','faza grupelor',null,board);
 let K=G.length===1?1:state.adv,gok=gi=>gfin(gi)&&!table(gi).tie,cur=G.findIndex((g,gi)=>!gok(gi)),done=cur<0;
-G.forEach((g,gi)=>{if(cur>=0&&gi>cur)return;let s=el('section',null,'',board),rows=table(gi);el('h2','grupa '+letters(gi),null,s);
+G.forEach((g,gi)=>{let s=el('section',null,'',board),rows=table(gi);el('h2','grupa '+letters(gi),null,s);
 let t=el('table',null,'',s),h=el('tr',null,'',el('thead',null,'',t));['jucător','J','V','+/−'].forEach(x=>el('th',x,null,h));
 let tb=el('tbody',null,'',t);rows.forEach((r,i)=>{let tr=el('tr',null,gok(gi)&&G.length>1&&i<K?'winner':'',tb);el('td',r.n,null,tr);el('td',r.j,null,tr);el('td',r.w,null,tr);el('td',r.sc?(r.d>0?'+'+r.d:r.d):'–',null,tr)});
+if(cur>=0&&gi>cur)return;
 if(gfin(gi)&&rows.tie){let c=el('article',null,'',s),T=rows.tie;el('small','egalitate','badge',c);el('p','egalitate perfectă între '+T.run.map(r=>r.n).join(', ')+' — alege cine ocupă locul '+T.slot+' în grupă:',null,c);T.run.forEach(r=>button(r.n,'player',c,()=>journal.send('tie',{tid:state.tid,group:gi,name:r.n})))}
 let seq=order(gi),p=seq.filter(m=>state.results[m.id]).length;
 if(p){let d=el('details',null,'',s);el('summary','meciuri jucate ('+p+')',null,d);seq.slice(0,p).forEach((m,k)=>match(d,m.a,m.b,m.id,'meci '+(k+1)))}
 if(p<seq.length){if(think===gi){let c=el('article',null,'think',s);el('small','meci '+(p+1),'badge',c);el('p','se alege următorul meci…',null,c)}
 else{let m=seq[p],r=seq.length-p-1,h=showOdds?nextHint(seq,p):null;match(s,m.a,m.b,m.id,'se joacă acum • meci '+(p+1));if(r)el('small','încă '+r+(r===1?' meci':' meciuri')+' în grupă'+(h?' • urmează probabil '+h:''),null,s)}}});
-if(cur>=0&&cur<G.length-1)el('small','grupa '+letters(cur+1)+' apare după ce se termină grupa '+letters(cur),null,board);
 if(!done)return;
 if(G.length===1){crown(board,table(0)[0].n);return}
 if(!state.pairs)return;
