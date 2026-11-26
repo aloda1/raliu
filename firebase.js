@@ -3,6 +3,21 @@ const journal = (() => {
   let api, authApi, auth, db, unsubscribe, revision=0, ready=false, busy=false, connecting=false;
   let confirmed=null, sending=false, blocked='', retryTimer, retryDelay=1000;
   const pendingKey='raliu-pending-event-v1';
+  // Bump the checkpoint version when changing how historical events are replayed.
+  const checkpointKey='raliu-confirmed-ae011-v1';
+  function loadCheckpoint(){
+    try{
+      const saved=JSON.parse(localStorage.getItem(checkpointKey));
+      if(!saved || !Number.isSafeInteger(saved.revision) || saved.revision<0)return null;
+      // Replay from the baseline if another tab advanced beyond our durable intent.
+      if(pending && saved.revision>pending.expected)return null;
+      validateBackup({app:'raliu',v:1,tournament:saved.state,elo:saved.elo});
+      return saved;
+    }catch{return null}
+  }
+  function saveCheckpoint(){
+    try{localStorage.setItem(checkpointKey,JSON.stringify({revision,...confirmed}))}catch{}
+  }
   const publicKinds=['start','end','score','undo','tie'];
   let pending=null;
   try {
@@ -93,18 +108,30 @@ const journal = (() => {
     connecting=true;ready=false;
     if(pending)pendingStatus();
     try {
+      const saved=loadCheckpoint();
+      if(saved){
+        confirmed={state:saved.state,elo:saved.elo};revision=saved.revision;
+        paint();
+      }
       const base='https://www.gstatic.com/firebasejs/10.14.1/';
       const [sdk,store,identity]=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-firestore.js'),import(base+'firebase-auth.js')]);
       api=store;authApi=identity;
       const app=sdk.getApps()[0]||sdk.initializeApp({projectId:'raliu-ae011',authDomain:'raliu-ae011.firebaseapp.com',apiKey:'AIzaSyDzskQc2sr-FoD45U9lZa3HX67vuVhUUbk'});
       auth=identity.getAuth(app);db=store.getFirestore(app);
-      const [ratings,tour]=await Promise.all(['elo/ratings','tournament/current'].map(path=>store.getDocFromServer(store.doc(db,path))));
-      const baselineE=ratings.exists()?JSON.parse(ratings.data().s):{r:{},log:[]};
-      const baselineT=tour.exists()?JSON.parse(tour.data().s):null;
-      let first=true;
-      const stream=store.query(store.collection(db,'raliu_events'),store.orderBy('seq'));
+      let baselineE,baselineT;
+      const constraints=[store.orderBy('seq')];
+      if(saved){
+        constraints.push(store.startAfter(saved.revision));
+      }else{
+        const [ratings,tour]=await Promise.all(['elo/ratings','tournament/current'].map(path=>store.getDocFromServer(store.doc(db,path))));
+        baselineE=ratings.exists()?JSON.parse(ratings.data().s):{r:{},log:[]};
+        baselineT=tour.exists()?JSON.parse(tour.data().s):null;
+      }
+      let first=!saved;
+      const stream=store.query(store.collection(db,'raliu_events'),...constraints);
       unsubscribe=store.onSnapshot(stream,{includeMetadataChanges:true},snapshot=>{
         if(snapshot.metadata.fromCache || snapshot.metadata.hasPendingWrites){ready=false;if(pending)pendingStatus();else status('se sincronizează…');return}
+        const previousRevision=first?-1:revision;
         if(first){E=structuredClone(baselineE);state=structuredClone(baselineT);if(state&&!state.tid)state.tid='legacy';prepareBracket();revision=0;first=false}
         else restoreConfirmed();
         let acknowledged=false, nextRevision=revision;
@@ -124,6 +151,7 @@ const journal = (() => {
             if(!forgetPending())blocked='acțiune sincronizată • stocare locală indisponibilă';
           }else if(revision!==pending.expected){blocked='conflict de sincronizare • datele online s-au schimbat'}
         }
+        if(previousRevision!==revision)saveCheckpoint();
         paint();
         if(pending){pendingStatus();void flush()}
         else status('salvat online ✓');
