@@ -40,6 +40,17 @@ for(const [value,,id] of navigation){
 }
 window.addEventListener('popstate',()=>{tab=routeTab();tabs()});
 
+let quickWinner=true;
+try{quickWinner=localStorage.getItem('raliu-quick-winner')!=='0'}catch{}
+const quickToggle=$('quick-winner');
+quickToggle.setAttribute('aria-checked',String(quickWinner));
+quickToggle.onclick=()=>{
+ quickWinner=!quickWinner;
+ try{localStorage.setItem('raliu-quick-winner',quickWinner?'1':'0')}catch{}
+ quickToggle.setAttribute('aria-checked',String(quickWinner));
+ if(tab==='t')render();
+};
+
 names.oninput=count;
 
 $('start').onclick=()=>{let players=entries();if(new Set(players.map(x=>x.toLocaleLowerCase('ro'))).size!==players.length){$('error').textContent='două nume coincid. adaugă o inițială ca să distingi jucătorii.';return}if(!players.every(safePlayer)){ $('error').textContent='nume invalid';return }

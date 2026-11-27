@@ -15,7 +15,7 @@ else if(a&&b){
  const playerRow=el('div',null,'match-players',card);
  const buttons=players.map(name=>button(name,'player',playerRow,()=>win(name,null)));
  const det=el('div',null,null,card);
- const scoreLabel=el('small','sau introdu scorul','badge',det);
+ const scoreLabel=el('small',quickWinner?'sau introdu scorul':'introdu scorul','badge',det);
  const form=el('form',null,'scores',det);
  const steppers=[];
  const fields=players.map((name,k)=>{
@@ -100,11 +100,11 @@ else if(a&&b){
   });
   equal.style.visibility=hasAdvantage?'visible':'hidden';
   status.textContent=hasAdvantage?'avantaj '+players[Number(side)]:'egalitate • '+score.join(' – ');
-  hint.textContent=empty?'apasă pe câștigător':valid&&raliuOdds.finished(score,target)?'joc încheiat la acest scor':'scor în joc';
+  hint.textContent=empty?(quickWinner?'apasă pe câștigător':'meciul urmează să înceapă'):valid&&raliuOdds.finished(score,target)?'joc încheiat la acest scor':'scor în joc';
   if(showOdds)hint.textContent+=empty?' • cote înainte de meci':' • cote live';
   const odds=showOdds?raliuOdds.calculate(a,b,E.r[nk(a)],E.r[nk(b)],empty?null:score,side,target):null;
   buttons.forEach((btn,k)=>{
-   btn.disabled=!empty;
+   btn.disabled=!quickWinner||!empty;
    if(tied){
     btn.replaceChildren();
     el('strong',players[k],null,btn);
