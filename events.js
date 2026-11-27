@@ -12,11 +12,15 @@ function prepareBracket() {
     if (rows.tie) return;
     qualifiers.push(...rows.slice(0,state.adv).map(r => ({n:r.n,g:gi})));
   }
+  state.pairs = drawQualifiers(qualifiers,state.tid);
+}
+
+function drawQualifiers(qualifiers,tid) {
   // The same tournament must produce the same shuffle on every phone.
   let seedValue = 7;
-  for (const c of String(state.tid)) seedValue = (Math.imul(seedValue,31) + c.charCodeAt(0)) >>> 0;
+  for (const c of String(tid)) seedValue = (Math.imul(seedValue,31) + c.charCodeAt(0)) >>> 0;
   const random = () => ((seedValue = (Math.imul(seedValue,1664525)+1013904223) >>> 0) / 4294967296);
-  state.pairs = seed(qualifiers, random);
+  return seed(qualifiers, random);
 }
 
 function applyEvent(kind, data, time, eventId) {

@@ -19,9 +19,9 @@ let last=seq[seq.length-1];
 while(rest.length){let lw=last&&state.results[last.id]&&state.results[last.id].winner,score=m=>[m.a,m.b].reduce((t,n)=>t+(last&&(n===last.a||n===last.b)?(n===lw?3:1):0)+gp[n]*.1,0);
 rest.sort((x,y)=>score(x)-score(y)||x.i-y.i);let m=rest.shift();seq.push(m);gp[m.a]++;gp[m.b]++;last=m}
 return seq}
-function table(gi){let g=state.groups[gi],t=new Map(g.map(n=>[n,{n,j:0,w:0,d:0,sc:0,beat:[]}]));
-fx(g).forEach(([a,b],i)=>{let r=state.results['g'+gi+'-'+i];if(!r)return;let w=r.winner,l=w===a?b:a;t.get(w).w++;t.get(w).j++;t.get(l).j++;t.get(w).beat.push(l);if(r.scores){let d=Math.abs(r.scores[0]-r.scores[1]);t.get(w).d+=d;t.get(l).d-=d;t.get(w).sc++;t.get(l).sc++}});
-let arr=[...t.values()].sort((x,y)=>y.w-x.w||y.d-x.d),K=state.groups.length===1?1:state.adv,pk=(state.tb&&state.tb[gi])||[],out=[];out.tie=null;
+function table(gi,tournament=state){let g=tournament.groups[gi],t=new Map(g.map(n=>[n,{n,j:0,w:0,d:0,sc:0,beat:[]}]));
+fx(g).forEach(([a,b],i)=>{let r=tournament.results['g'+gi+'-'+i];if(!r)return;let w=r.winner,l=w===a?b:a;t.get(w).w++;t.get(w).j++;t.get(l).j++;t.get(w).beat.push(l);if(r.scores){let d=Math.abs(r.scores[0]-r.scores[1]);t.get(w).d+=d;t.get(l).d-=d;t.get(w).sc++;t.get(l).sc++}});
+let arr=[...t.values()].sort((x,y)=>y.w-x.w||y.d-x.d),K=tournament.groups.length===1?1:tournament.adv,pk=(tournament.tb&&tournament.tb[gi])||[],out=[];out.tie=null;
 for(let i=0,j;i<arr.length;i=j){j=i;while(j<arr.length&&arr[j].w===arr[i].w&&arr[j].d===arr[i].d)j++;let run=arr.slice(i,j);
 if(run.length===2&&(run[0].beat.includes(run[1].n)||run[1].beat.includes(run[0].n))){if(run[1].beat.includes(run[0].n))run.reverse()}
 else if(run.length>1){let p=run.filter(r=>pk.includes(r.n)).sort((x,y)=>pk.indexOf(x.n)-pk.indexOf(y.n)),q=run.filter(r=>!pk.includes(r.n));run=p.concat(q);if(i<K&&j>K&&p.length<K-i)out.tie={run:q,slot:i+p.length+1}}
@@ -54,6 +54,7 @@ oddsSwitch.id='odds-switch';
 oddsSwitch.setAttribute('role','switch');
 oddsSwitch.setAttribute('aria-checked',String(showOdds));
 el('span',null,'odds-track',oddsSwitch).setAttribute('aria-hidden','true');
+renderForecast(board,state,E);
 el('h3','faza grupelor',null,board);
 let K=G.length===1?1:state.adv,gok=gi=>gfin(gi)&&!table(gi).tie,cur=G.findIndex((g,gi)=>!gok(gi)),done=cur<0;
 G.forEach((g,gi)=>{let s=el('section',null,'',board),rows=table(gi);el('h2','grupa '+letters(gi),null,s);
