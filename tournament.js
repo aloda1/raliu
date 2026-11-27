@@ -8,7 +8,22 @@ function shuffle(list,random=Math.random){for(let i=list.length-1;i>0;i--){let j
 function split(players){let bag=shuffle(players.slice());return sizes(players.length).map(k=>bag.splice(0,k))}
 // tabloul eliminatoriu; încearcă să evite meciuri între jucători din aceeași grupă
 function seed(q,random=Math.random){let size=2**Math.ceil(Math.log2(q.length)),best;for(let t=0;t<200;t++){let bag=shuffle(q.slice(),random),pairs=[];for(let i=0;i<size/2;i++)pairs.push([bag.pop(),i<size-q.length?null:bag.pop()]);best=pairs;if(pairs.every(([a,b])=>!b||a.g!==b.g))break}return shuffle(best,random).map(p=>p.map(x=>x&&x.n))}
-let think=null;
+let lastTournamentId, lastMatchCount, transitionTimer;
+function updateMatchTransition(){
+ const count=state?.history.length;
+ if(lastTournamentId!==state?.tid || count!==lastMatchCount){
+  clearTimeout(transitionTimer);
+  transitionTimer=undefined;
+  if(state && state.tid===lastTournamentId && count===lastMatchCount+1){
+   transitionTimer=setTimeout(()=>{
+    transitionTimer=undefined;
+    if(tab==='t' && $('board').querySelector('.match-transition'))render();
+   },1000);
+  }
+ }
+ lastTournamentId=state?.tid;
+ lastMatchCount=count;
+}
 
 const letters=i=>String.fromCharCode(65+i);
 const fx=g=>g.flatMap((a,i)=>g.slice(i+1).map(b=>[a,b]));
@@ -40,7 +55,7 @@ function render(){
  drafts=d;render0();
  if(focused){const field=[...document.querySelectorAll('#board input[data-k]')].find(i=>i.dataset.k===focused);if(field)field.focus()}
 }
-function render0(){let board=$('board');board.replaceChildren();$('setup').hidden=!!state;if(!state){count();return}
+function render0(){updateMatchTransition();let board=$('board');board.replaceChildren();$('setup').hidden=!!state;if(!state){count();return}
 let G=state.groups,nav=el('nav',null,'row',board);el('small',state.players.length+' participanți • primul la '+(state.target??11)+' • '+G.length+(G.length===1?' grupă':' grupe'),null,nav);
 button('anulează ultimul rezultat','',nav,()=>journal.send('undo',{tid:state.tid,id:state.history.at(-1)})).disabled=!state.history.length;
 let nb=button('turneu nou','',nav,()=>{if(state.history.length&&!nb.dataset.sure){nb.dataset.sure='1';nb.textContent='sigur? apasă din nou';setTimeout(()=>{nb.dataset.sure='';nb.textContent='turneu nou'},4000);return}names.value=state.players.join('\n');journal.send('end',{tid:state.tid})});
@@ -64,8 +79,7 @@ if(cur>=0&&gi>cur)return;
 if(gfin(gi)&&rows.tie){let c=el('article',null,'',s),T=rows.tie;el('small','egalitate','badge',c);el('p','egalitate perfectă între '+T.run.map(r=>r.n).join(', ')+' — alege cine ocupă locul '+T.slot+' în grupă:',null,c);T.run.forEach(r=>button(r.n,'player',c,()=>journal.send('tie',{tid:state.tid,group:gi,name:r.n})))}
 let seq=order(gi),p=seq.filter(m=>state.results[m.id]).length;
 if(p){let d=el('details',null,'',s);el('summary','meciuri jucate ('+p+')',null,d);seq.slice(0,p).forEach((m,k)=>match(d,m.a,m.b,m.id,'meci '+(k+1)))}
-if(p<seq.length){if(think===gi){let c=el('article',null,'think',s);el('small','meci '+(p+1),'badge',c);el('p','se alege următorul meci…',null,c)}
-else{let m=seq[p],r=seq.length-p-1,h=showOdds?nextHint(seq,p):null;match(s,m.a,m.b,m.id,'se joacă acum • meci '+(p+1));if(r)el('small','încă '+r+(r===1?' meci':' meciuri')+' în grupă'+(h?' • urmează probabil '+h:''),null,s)}}});
+if(p<seq.length){let m=seq[p],r=seq.length-p-1,h=showOdds?nextHint(seq,p):null;match(s,m.a,m.b,m.id,'se joacă acum • meci '+(p+1));if(r)el('small','încă '+r+(r===1?' meci':' meciuri')+' în grupă'+(h?' • urmează probabil '+h:''),null,s)}});
 if(!done)return;
 if(G.length===1){crown(board,table(0)[0].n);return}
 if(!state.pairs)return;

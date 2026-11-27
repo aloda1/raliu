@@ -1,4 +1,11 @@
 function match(parent,a,b,id,label){let r=state.results[id],card=el('article',null,/^se joacă/.test(label)&&!r?'now':'',parent);el('small',label,'badge',card);
+if(!r && a && b && transitionTimer!==undefined){
+ card.classList.add('match-transition');
+ card.firstChild.textContent='urmează în 1 secundă';
+ card.setAttribute('role','status');
+ el('p',a+' – '+b,null,card);
+ return;
+}
 function win(winner,scores){journal.send('score',{tid:state.tid,id,a,b,winner,scores})}
 if(r){el('p',a+' '+(r.scores?r.scores.join(' – '):' vs. ')+' '+b,null,card);el('strong','✓ '+r.winner,null,card)}
 else if(a&&b){
