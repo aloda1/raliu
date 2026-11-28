@@ -82,7 +82,6 @@ function renderForecast(board,tournament,elo){
       forecastCache={key,rows:[...counts].sort((a,b)=>b[1]-a[1]).map(([name,n])=>[name,n/trials])};
     }
     body.replaceChildren();
-    el('p','șanse la titlu pe baza elo-ului și a meciurilor directe',null,body);
     for(const [name,chance] of forecastCache.rows){
       const row=el('div',null,'forecast-row',body);
       el('span',name,null,row);
