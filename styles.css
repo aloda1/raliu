@@ -151,3 +151,5 @@ dialog{border:1px solid var(--border);border-radius:12px}
 
 #quick-winner{margin-left:auto;font-size:.85rem}
 #quick-winner .odds-track{flex:none}
+
+.fixture{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);overflow-wrap:anywhere}.fixture small{flex:none}

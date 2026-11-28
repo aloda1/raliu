@@ -46,8 +46,11 @@ const gfin=gi=>fx(state.groups[gi]).every((_,i)=>state.results['g'+gi+'-'+i]);
 
 function crown(board,w,s2){let c=el('section',null,'winner');el('small','turneu încheiat',null,c);el('h2','🏆 '+w,null,c);if(s2)el('p','locul 2: '+s2,null,c);if(state.results['3rd'])el('p','locul 3: '+state.results['3rd'].winner,null,c);board.prepend(c)}
 let showOdds=true;try{showOdds=localStorage.getItem('raliu-odds')!=='0'}catch{}
-const CERTAIN=.6; // sub acest prag (favorit < 60%) meciul e prea echilibrat și nu arătăm indiciu
-function nextHint(seq,p){const m=seq[p],A=E.r[nk(m.a)],B=E.r[nk(m.b)];const pa=raliuOdds.ratingChance(A,B);if(pa===null||Math.max(pa,1-pa)<CERTAIN)return null;const win=pa>.5?m.a:m.b,lose=pa>.5?m.b:m.a,n=seq.slice(p+1).find(x=>(x.a===lose||x.b===lose)&&x.a!==win&&x.b!==win);return n?lose+' – '+(n.a===lose?n.b:n.a):null}
+function fixture(parent,a,b,status){
+ const row=el('div',null,'fixture',parent);
+ el('span',a+' – '+b,null,row);
+ el('small',status,null,row);
+}
 
 function render(){
  const d={},focused=document.activeElement?.dataset?.k;
@@ -75,20 +78,36 @@ let K=G.length===1?1:state.adv,gok=gi=>gfin(gi)&&!table(gi).tie,cur=G.findIndex(
 G.forEach((g,gi)=>{let s=el('section',null,'',board),rows=table(gi);el('h2','grupa '+letters(gi),null,s);
 let t=el('table',null,'',s),h=el('tr',null,'',el('thead',null,'',t));['jucător','J','V','+/−'].forEach(x=>el('th',x,null,h));
 let tb=el('tbody',null,'',t);rows.forEach((r,i)=>{let tr=el('tr',null,gok(gi)&&G.length>1&&i<K?'winner':'',tb);el('td',r.n,null,tr);el('td',r.j,null,tr);el('td',r.w,null,tr);el('td',r.sc?(r.d>0?'+'+r.d:r.d):'–',null,tr)});
-if(cur>=0&&gi>cur)return;
+const schedule=order(gi);
+const played=schedule.filter(m=>state.results[m.id]).length;
+schedule.forEach((m,i)=>{
+ const result=state.results[m.id];
+ if(!result && gi===cur && i===played){
+  match(s,m.a,m.b,m.id,'se joacă acum • meci '+(i+1));
+ }else{
+  const status=result?(result.scores?result.scores.join(' – '):'✓ '+result.winner):'în așteptare';
+  fixture(s,m.a,m.b,status);
+ }
+});
 if(gfin(gi)&&rows.tie){let c=el('article',null,'',s),T=rows.tie;el('small','egalitate','badge',c);el('p','egalitate perfectă între '+T.run.map(r=>r.n).join(', ')+' — alege cine ocupă locul '+T.slot+' în grupă:',null,c);T.run.forEach(r=>button(r.n,'player',c,()=>journal.send('tie',{tid:state.tid,group:gi,name:r.n})))}
-let seq=order(gi),p=seq.filter(m=>state.results[m.id]).length;
-if(p){let d=el('details',null,'',s);el('summary','meciuri jucate ('+p+')',null,d);seq.slice(0,p).forEach((m,k)=>match(d,m.a,m.b,m.id,'meci '+(k+1)))}
-if(p<seq.length){let m=seq[p],r=seq.length-p-1,h=showOdds?nextHint(seq,p):null;match(s,m.a,m.b,m.id,'se joacă acum • meci '+(p+1));if(r)el('small','încă '+r+(r===1?' meci':' meciuri')+' în grupă'+(h?' • urmează probabil '+h:''),null,s)}});
+});
 if(!done)return;
 if(G.length===1){crown(board,table(0)[0].n);return}
 if(!state.pairs)return;
 el('h3','faza eliminatorie',null,board);
 let pairs=state.pairs,round=0,block=false,nw=false;
 while(pairs.length){let next=[];let rd=el('details',null,'rh',board);rd.open=true;el('summary',pairs.length===1?'finală':pairs.length===2?'semifinale':pairs.length===4?'sferturi de finală':pairs.length===8?'optimi de finală':'turul '+(round+1),null,rd);
-pairs.forEach(([a,b],i)=>{if(block){next.push(undefined);return}let id=round+'-'+i,bye=round===0&&b===null,winner;
+pairs.forEach(([a,b],i)=>{let id=round+'-'+i,bye=round===0&&b===null,winner;
 if(bye){winner=a;let c=el('article',null,'',rd);el('small','meci '+(i+1),'badge',c);el('p',a+' trece automat în turul următor.',null,c)}
+else if(block && !state.results[id]){
+ const previous=i*2+1;
+ fixture(rd,a||'câștigător meci '+previous,b||'câștigător meci '+(previous+1),'în așteptare');
+}
 else{let lab=!state.results[id]&&a&&b&&!nw?(nw=true,'se joacă acum • meci '+(i+1)):'meci '+(i+1);match(rd,a,b,id,lab);winner=state.results[id]&&state.results[id].winner;if(!winner)block=true}
 next.push(winner);if(pairs.length===1&&winner)crown(board,winner,winner===a?b:a)});
 if(pairs.length===2&&!block&&!(round===0&&pairs.some(p=>p[1]===null))){let L=pairs.map(([a,b],i)=>{let r=state.results[round+'-'+i];return r.winner===a?b:a});el('h3','mica finală',null,board);match(board,L[0],L[1],'3rd',state.results['3rd']?'meci':'se joacă acum • mica finală');if(!state.results['3rd'])block=true}
-if(!block&&pairs.length>1)rd.open=false;if(block||next.length===1)break;pairs=[];for(let j=0;j<next.length;j+=2)pairs.push(next.slice(j,j+2));round++}}
+if(pairs.length===2 && block && !(round===0&&pairs.some(([a,b])=>b===null)) && !rd.nextElementSibling){
+ el('h3','mica finală',null,board);
+ fixture(board,'învins semifinala 1','învins semifinala 2','în așteptare');
+}
+if(next.length===1)break;pairs=[];for(let j=0;j<next.length;j+=2)pairs.push(next.slice(j,j+2));round++}}
