@@ -40,8 +40,8 @@ for(const [value,,id] of navigation){
 }
 window.addEventListener('popstate',()=>{tab=routeTab();tabs()});
 
-let quickWinner=true;
-try{quickWinner=localStorage.getItem('raliu-quick-winner')!=='0'}catch{}
+let quickWinner=false;
+try{quickWinner=localStorage.getItem('raliu-quick-winner')==='1'}catch{}
 const quickToggle=$('quick-winner');
 quickToggle.setAttribute('aria-checked',String(quickWinner));
 quickToggle.onclick=()=>{
